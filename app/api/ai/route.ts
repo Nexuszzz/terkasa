@@ -1,14 +1,16 @@
+import { fetchGemini, geminiRuntimeConfig, geminiTimeout } from '@/lib/server/gemini-client'
 /**
- * Gemini API only — text tasks:
+ * Gemini Cloud API or local Gemini Web gateway — text and vision tasks:
  *  - caption     → teks caption multi-platform
  *  - transaction → parse transaksi dari teks
  *  - assistant   → chat asisten
  *
  * Gambar / poster TIDAK lewat sini.
- * Poster → POST /api/ai/poster (GenityBoost nano-banana).
+ * Poster → POST /api/ai/poster (selected image provider or photo template).
  */
 import { buildUserPrompt, getCaptionSystemInstruction, getSystemInstruction } from '@/lib/ai-prompts'
-import { envTrim, getSessionUser, unauthorized } from '@/lib/server/auth'
+import { getSessionUser, unauthorized } from '@/lib/server/auth'
+import { geminiWebReady } from '@/lib/server/gemini-web'
 import { getSnapshot } from '@/lib/server/db'
 import { NextResponse } from 'next/server'
 
@@ -27,8 +29,6 @@ type AiRequest =
   | { task: 'transaction'; text: string }
   | { task: 'assistant'; message: string }
 
-const TEXT_PROVIDER = 'gemini' as const
-
 const MAX_TEXT_LENGTH = 4_000
 const MAX_IMAGE_DATA_URL_LENGTH = 7_000_000
 
@@ -42,23 +42,18 @@ function extractJson(text: string) {
 }
 
 export async function GET() {
-  const key = envTrim('GEMINI_API_KEY')
-  const model = envTrim('GEMINI_MODEL') || 'gemini-2.5-flash'
-  if (!key) return jsonResponse({ configured: false, model, error: 'GEMINI_API_KEY belum tersedia di server.' }, 503)
-  if (!key.startsWith('AIza')) {
-    return jsonResponse(
-      { configured: false, model, error: 'GEMINI_API_KEY bukan API key Google AI Studio yang valid.' },
-      503,
-    )
-  }
+  const config = geminiRuntimeConfig()
+  const { model } = config
+  if (!config.configured) return jsonResponse({ configured: false, model, error: config.error }, 503)
+  const connection = { provider: config.provider, ...(config.web ? { ready: await geminiWebReady() } : {}) }
   const user = await getSessionUser()
   if (!user) {
     return jsonResponse({
       configured: true,
-      provider: TEXT_PROVIDER,
+      ...connection,
       model,
       knowledge: 'login-required',
-      note: 'Teks/caption = Gemini. Poster/gambar = Genity /api/ai/poster',
+      note: 'Teks dan foto melalui Gemini. Poster melalui /api/ai/poster.',
     })
   }
   try {
@@ -66,21 +61,21 @@ export async function GET() {
     const db = await getSnapshot(bizId, user.id)
     return jsonResponse({
       configured: true,
-      provider: TEXT_PROVIDER,
+      ...connection,
       model,
       knowledge: 'live-db',
       catalogCount: db.catalog.length,
       updatedAt: db.updatedAt,
       brand: db.profile.brand,
-      note: 'Teks/caption = Gemini. Poster/gambar = Genity /api/ai/poster',
+      note: 'Teks dan foto melalui Gemini. Poster melalui /api/ai/poster.',
     })
   } catch {
     return jsonResponse({
       configured: true,
-      provider: TEXT_PROVIDER,
+      ...connection,
       model,
       knowledge: 'no-business',
-      note: 'Teks/caption = Gemini. Poster/gambar = Genity /api/ai/poster',
+      note: 'Teks dan foto melalui Gemini. Poster melalui /api/ai/poster.',
     })
   }
 }
@@ -89,14 +84,8 @@ export async function POST(request: Request) {
   const user = await getSessionUser()
   if (!user) return unauthorized()
 
-  const key = envTrim('GEMINI_API_KEY')
-  if (!key) return jsonResponse({ error: 'AI belum dikonfigurasi. Tambahkan GEMINI_API_KEY ke .env.local.' }, 503)
-  if (!key.startsWith('AIza')) {
-    return jsonResponse(
-      { error: 'Credential tidak valid. Gunakan API key baru dari Google AI Studio, bukan access token.' },
-      503,
-    )
-  }
+  const config = geminiRuntimeConfig()
+  if (!config.configured) return jsonResponse({ error: config.error }, 503)
 
   let body: AiRequest
   try {
@@ -178,11 +167,10 @@ export async function POST(request: Request) {
     required: ['product', 'qty', 'price'],
   }
 
-  const model = envTrim('GEMINI_MODEL') || 'gemini-2.5-flash'
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`
+  const model = config.model
 
   try {
-    const upstream = await fetch(endpoint, {
+    const upstream = await fetchGemini(model, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -209,14 +197,14 @@ export async function POST(request: Request) {
               }),
         },
       }),
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(geminiTimeout()),
     })
     const payload = await upstream.json()
     if (!upstream.ok) {
       console.error('Gemini request failed', upstream.status, payload?.error?.status)
       return jsonResponse(
-        { error: 'Layanan AI sedang tidak tersedia. Periksa model dan API key Anda.' },
-        502,
+        { error: config.web ? 'Gemini Web belum siap. Periksa gateway, sesi akun, dan kuota Gemini Anda.' : 'Layanan AI sedang tidak tersedia. Periksa model dan API key Anda.' },
+        [401, 429, 503].includes(upstream.status) ? upstream.status === 401 ? 503 : upstream.status : 502,
       )
     }
     const candidate = payload?.candidates?.[0]

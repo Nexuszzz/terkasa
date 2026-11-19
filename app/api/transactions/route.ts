@@ -31,8 +31,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const qty = Number(body?.qty)
-    if (!Number.isFinite(qty) || qty < 1) {
-      return NextResponse.json({ error: 'qty minimal 1.' }, { status: 400 })
+    if (!Number.isSafeInteger(qty) || qty < 1) {
+      return NextResponse.json({ error: 'Jumlah harus bilangan bulat minimal 1.' }, { status: 400 })
     }
     const productName = String(body?.product || '').trim()
     const productId = body?.productId ? String(body.productId).trim() : ''

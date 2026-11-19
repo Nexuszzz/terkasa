@@ -1,31 +1,48 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google'
+import localFont from 'next/font/local'
 import { CapacitorInit } from '@/components/capacitor-init'
 import { ThemeProvider } from '@/components/theme-provider'
 import { WhatsAppSupportWidget } from '@/components/whatsapp-support-widget'
+import { PROJECT_TITLE } from '@/lib/brand'
 import './globals.css'
 
-const inter = Inter({
-  subsets: ['latin'],
+const inter = localFont({
+  src: './fonts/inter-latin.woff2',
+  weight: '100 900',
+  display: 'swap',
   variable: '--font-inter',
 })
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
+const spaceGrotesk = localFont({
+  src: './fonts/space-grotesk-latin.woff2',
+  weight: '300 700',
+  display: 'swap',
   variable: '--font-space-grotesk',
 })
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
+const jetbrainsMono = localFont({
+  src: './fonts/jetbrains-mono-latin.woff2',
+  weight: '100 800',
+  display: 'swap',
   variable: '--font-jetbrains',
 })
 
 export const metadata: Metadata = {
-  title: 'UMKMan — UMKM Naik Kelas, Ditenagai Kecerdasan Buatan',
-  description:
-    'Platform AI untuk UMKM Indonesia: buat konten promosi, caption, dan analisis penjualan secara otomatis untuk semua platform sekaligus.',
-  generator: 'v0.app',
+  title: 'TERKASA — Inventori Peternakan & Pemasaran AI',
+  description: PROJECT_TITLE,
+  applicationName: 'TERKASA',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/apple-icon.png',
+  },
+  openGraph: {
+    title: 'TERKASA — Inventori Peternakan & Pemasaran AI',
+    description: 'Kelola stok sapi, domba, kambing, dan ternak lainnya. Catat transaksi dan buat promosi digital dengan AI.',
+    siteName: 'TERKASA',
+    locale: 'id_ID',
+    type: 'website',
+  },
 }
 
 export const viewport: Viewport = {

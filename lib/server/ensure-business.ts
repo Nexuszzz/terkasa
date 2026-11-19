@@ -44,7 +44,7 @@ export async function ensureUserBusiness(
       owner: resolved.name || resolved.email || brand,
       email: resolved.email || undefined,
       phone: extras?.phone,
-      category: 'UMKM',
+      category: 'Peternakan',
     })
   } catch (error) {
     console.error('[ensureUserBusiness] create failed', error)

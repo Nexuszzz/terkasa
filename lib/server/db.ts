@@ -74,6 +74,11 @@ export async function createCatalogProduct(
 
 export { findProduct } from '@/lib/server/db-file'
 
+export async function adjustCatalogStock(...args: Parameters<typeof import('@/lib/server/db-file').adjustCatalogStock>) {
+  const m = await backend()
+  return m.adjustCatalogStock(...args)
+}
+
 export async function createTransaction(
   ...args: Parameters<typeof import('@/lib/server/db-file').createTransaction>
 ) {

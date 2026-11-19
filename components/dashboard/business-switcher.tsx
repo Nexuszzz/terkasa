@@ -97,7 +97,7 @@ export function BusinessSwitcher() {
             className="absolute left-0 top-full z-40 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-popover p-2 shadow-2xl"
           >
             <p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Usaha di UMKMan
+              Usaha di TERKASA
             </p>
             <ul role="listbox" className="max-h-52 overflow-y-auto">
               {businesses.map((b) => (

@@ -1,8 +1,17 @@
 'use client'
 
 import { Modal } from '@/components/ui/modal'
-import { AI_TONES, normalizeAiPreferences, normalizeAiTone, type AiTone } from '@/lib/ai-style'
-import { useDashboard, type ContentItem, type Platform } from '@/lib/dashboard-store'
+import {
+  AI_TONES,
+  normalizeAiPreferences,
+  normalizeAiTone,
+  type AiTone,
+} from '@/lib/ai-style'
+import {
+  useDashboard,
+  type ContentItem,
+  type Platform,
+} from '@/lib/dashboard-store'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Camera,
@@ -17,12 +26,40 @@ import {
   Upload,
 } from 'lucide-react'
 import Image from 'next/image'
-import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+} from 'react'
 import { InstagramIcon } from './brand-icons'
 
 type Step = 'upload' | 'processing' | 'result'
 type Style = AiTone
 type PosterAspect = '1:1' | '9:16' | '16:9'
+type PosterMode = 'auto' | 'ai' | 'template'
+
+async function preparePosterReference(
+  source: string | undefined,
+  businessId: string | null,
+  signal?: AbortSignal,
+) {
+  if (!source?.startsWith('data:image/')) return source
+  const response = await fetch('/api/media/upload', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(businessId ? { 'x-business-id': businessId } : {}),
+    },
+    body: JSON.stringify({ dataUrl: source, businessId, kind: 'products' }),
+    signal,
+  })
+  const payload = await response.json()
+  if (!response.ok || !payload.url)
+    throw new Error(payload.error || 'Foto produk belum berhasil disimpan.')
+  return String(payload.url)
+}
 /** Opsi generate: caption Gemini | poster Genity | keduanya */
 type GenerateMode = 'caption' | 'poster' | 'both'
 
@@ -49,13 +86,13 @@ const GENERATE_MODES: {
   {
     key: 'poster',
     label: 'Poster saja',
-    desc: 'Gambar via Genity · simpan ke Konten',
+    desc: 'Gambar AI / template foto · simpan ke Konten',
     icon: ImageIcon,
   },
   {
     key: 'both',
     label: 'Caption + Poster',
-    desc: 'Gemini teks + Genity gambar',
+    desc: 'Caption AI + poster promosi',
     icon: Layers,
   },
 ]
@@ -69,7 +106,7 @@ const TEXTS_CAPTION = [
 
 const TEXTS_POSTER = [
   'Menganalisis produk...',
-  'Merancang poster (Genity)...',
+  'Merancang poster promosi...',
   'Menggambar layout jualan...',
   'Menyimpan ke server...',
   'Hampir selesai...',
@@ -78,7 +115,7 @@ const TEXTS_POSTER = [
 const TEXTS_BOTH = [
   'Menyiapkan request...',
   'Caption lewat Gemini...',
-  'Poster lewat Genity...',
+  'Menyiapkan layout poster...',
   'Menyimpan gambar ke server...',
   'Hampir selesai...',
 ]
@@ -96,8 +133,15 @@ const PLATFORM_COLOR: Record<Platform, string> = {
 }
 
 export function GenerateContentModal() {
-  const { contentModal, closeContentModal, addContents, updateContent, profile, catalog, businessId } =
-    useDashboard()
+  const {
+    contentModal,
+    closeContentModal,
+    addContents,
+    updateContent,
+    profile,
+    catalog,
+    businessId,
+  } = useDashboard()
   const { open, editItem } = contentModal
   const isEdit = Boolean(editItem)
 
@@ -114,8 +158,12 @@ export function GenerateContentModal() {
   const [error, setError] = useState<string | null>(null)
   const [posterAspect, setPosterAspect] = useState<PosterAspect>('1:1')
   const [posterUrl, setPosterUrl] = useState<string | null>(null)
-  const [posterStatus, setPosterStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [posterStatus, setPosterStatus] = useState<
+    'idle' | 'loading' | 'ready' | 'error'
+  >('idle')
   const [posterError, setPosterError] = useState<string | null>(null)
+  const [posterMode, setPosterMode] = useState<PosterMode>('auto')
+  const [posterNotice, setPosterNotice] = useState('')
   const [imageBusy, setImageBusy] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editImageInputRef = useRef<HTMLInputElement>(null)
@@ -160,13 +208,19 @@ export function GenerateContentModal() {
     }
     setCopied(null)
     setError(null)
+    setPosterNotice('')
+    setPosterMode('auto')
   }, [open, editItem, profile?.ai])
 
   function handleFile(file: File | undefined) {
     if (!file || !file.type.startsWith('image/')) return
     const reader = new FileReader()
     reader.onload = () => setPhoto(reader.result as string)
-    reader.readAsDataURL(file)
+    void compressImageFile(file, 1400, 0.8)
+      .then((blob) => reader.readAsDataURL(blob))
+      .catch(() =>
+        setError('Foto belum dapat diproses. Gunakan JPEG, PNG, atau WebP.'),
+      )
   }
 
   function onDrop(e: DragEvent) {
@@ -180,7 +234,11 @@ export function GenerateContentModal() {
   }
 
   /** Kompres gambar di browser biar lolos body limit Vercel */
-  async function compressImageFile(file: File, maxEdge = 1600, quality = 0.82): Promise<Blob> {
+  async function compressImageFile(
+    file: File,
+    maxEdge = 1600,
+    quality = 0.82,
+  ): Promise<Blob> {
     const bitmap = await createImageBitmap(file)
     const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height))
     const w = Math.max(1, Math.round(bitmap.width * scale))
@@ -199,7 +257,9 @@ export function GenerateContentModal() {
     return blob
   }
 
-  async function parseJsonSafe(res: Response): Promise<Record<string, unknown>> {
+  async function parseJsonSafe(
+    res: Response,
+  ): Promise<Record<string, unknown>> {
     const text = await res.text()
     if (!text) {
       throw new Error(
@@ -243,7 +303,8 @@ export function GenerateContentModal() {
         body: form,
       })
       const payload = await parseJsonSafe(res)
-      if (!res.ok) throw new Error(String(payload.error || 'Gagal upload gambar.'))
+      if (!res.ok)
+        throw new Error(String(payload.error || 'Gagal upload gambar.'))
       const path = String(payload.localPath || payload.url || '')
       if (!path) throw new Error('Upload OK tapi path gambar kosong.')
       URL.revokeObjectURL(localPreview)
@@ -265,7 +326,9 @@ export function GenerateContentModal() {
     setPosterError(null)
     setPosterStatus('loading')
     try {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
       if (businessId) headers['x-business-id'] = businessId
       const catalogMatch = catalog.find(
         (p) =>
@@ -274,46 +337,55 @@ export function GenerateContentModal() {
             productName.toLowerCase().includes(p.shortName.toLowerCase())),
       )
       // Foto user dulu; catalog image HANYA jika nama produk cocok
-      const refPhoto = photo || posterUrl || (catalogMatch ? catalogMatch.image : undefined)
+      const refPhoto =
+        photo || posterUrl || (catalogMatch ? catalogMatch.image : undefined)
       const safeRef =
-        refPhoto &&
-        !(refPhoto.startsWith('data:image/') && refPhoto.length > 200_000) &&
-        !refPhoto.startsWith('blob:')
-          ? refPhoto
+        refPhoto && !refPhoto.startsWith('blob:')
+          ? await preparePosterReference(refPhoto, businessId)
           : undefined
       const res = await fetch('/api/ai/poster', {
         method: 'POST',
         headers,
         body: JSON.stringify({
           // Jangan fallback profile.brand / catalog bila user upload produk lain
-          productName: productName.trim() || (catalogMatch ? catalogMatch.name : undefined),
+          productName:
+            productName.trim() ||
+            (catalogMatch ? catalogMatch.name : undefined),
           style,
           platform: platforms[0] || editItem?.platform || 'Instagram',
           description: catalogMatch?.description || undefined,
           aspectRatio: posterAspect,
+          posterMode,
           resolution: '1K',
           userPrompt: userPrompt.trim() || undefined,
           referenceImage: safeRef,
-          referenceImageUrl: catalogMatch && !photo ? catalogMatch.image : undefined,
+          referenceImageUrl:
+            catalogMatch && !photo ? catalogMatch.image : undefined,
         }),
       })
       const payload = await parseJsonSafe(res)
-      if (!res.ok) throw new Error(String(payload.error || 'Gagal generate poster.'))
+      if (!res.ok)
+        throw new Error(String(payload.error || 'Gagal generate poster.'))
       const path = String(payload.localPath || payload.url || '')
       if (!path) throw new Error('Poster generated tapi URL kosong.')
       setPosterUrl(path)
+      setPosterNotice(String(payload.warning || ''))
       setPhoto(path)
       setPosterStatus('ready')
     } catch (cause) {
       setPosterStatus('error')
-      setPosterError(cause instanceof Error ? cause.message : 'Gagal generate poster.')
+      setPosterError(
+        cause instanceof Error ? cause.message : 'Gagal generate poster.',
+      )
     } finally {
       setImageBusy(false)
     }
   }
 
   function togglePlatform(p: Platform) {
-    setPlatforms((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]))
+    setPlatforms((prev) =>
+      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p],
+    )
   }
 
   function canStart(): boolean {
@@ -344,7 +416,9 @@ export function GenerateContentModal() {
 
     async function generate() {
       try {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        }
         if (businessId) headers['x-business-id'] = businessId
 
         const catalogMatch = catalog.find(
@@ -355,10 +429,18 @@ export function GenerateContentModal() {
         )
         // Foto user = prioritas. Catalog image hanya jika nama cocok (anti-leak multi-tenant).
         // Server resolve data URL / /products/... — jangan paksa brand toko ke produk luar.
-        const productPhotoForPoster =
+        let productPhotoForPoster =
           photo || (catalogMatch ? catalogMatch.image : undefined) || undefined
+        if (needPoster)
+          productPhotoForPoster = await preparePosterReference(
+            productPhotoForPoster,
+            businessId,
+            controller.signal,
+          )
         const resolvedProductName =
-          productName.trim() || (catalogMatch ? catalogMatch.name : '') || undefined
+          productName.trim() ||
+          (catalogMatch ? catalogMatch.name : '') ||
+          undefined
 
         const captionPromise = needCaption
           ? fetch('/api/ai', {
@@ -367,7 +449,9 @@ export function GenerateContentModal() {
               body: JSON.stringify({
                 task: 'caption',
                 // Jangan default ke profile.brand saat user upload produk lain
-                productName: resolvedProductName || (photo ? 'Produk dari foto' : 'Produk'),
+                productName:
+                  resolvedProductName ||
+                  (photo ? 'Produk dari foto' : 'Produk'),
                 style,
                 platforms: platforms.length ? platforms : ['Instagram'],
                 image: photo,
@@ -376,7 +460,10 @@ export function GenerateContentModal() {
               signal: controller.signal,
             }).then(async (response) => {
               const payload = await parseJsonSafe(response)
-              if (!response.ok) throw new Error(String(payload.error || 'Gemini gagal membuat caption.'))
+              if (!response.ok)
+                throw new Error(
+                  String(payload.error || 'Gemini gagal membuat caption.'),
+                )
               return payload
             })
           : Promise.resolve(null)
@@ -392,24 +479,28 @@ export function GenerateContentModal() {
                 // Deskripsi katalog hanya jika match
                 description: catalogMatch?.description,
                 aspectRatio: posterAspect,
+                posterMode,
                 resolution: '1K',
-                // Jangan kirim data URL raksasa ke Genity lewat body Vercel
-                referenceImage:
-                  productPhotoForPoster &&
-                  !(
-                    productPhotoForPoster.startsWith('data:image/') &&
-                    productPhotoForPoster.length > 200_000
-                  )
-                    ? productPhotoForPoster
-                    : undefined,
-                referenceImageUrl: catalogMatch && !photo ? catalogMatch.image : undefined,
+                referenceImage: productPhotoForPoster,
+                referenceImageUrl:
+                  catalogMatch && !photo ? catalogMatch.image : undefined,
                 userPrompt: userPrompt.trim() || undefined,
               }),
               signal: controller.signal,
             }).then(async (response) => {
               const payload = await parseJsonSafe(response)
-              if (!response.ok) throw new Error(String(payload.error || 'Genity gagal generate poster.'))
-              return payload as { url: string; localPath?: string }
+              if (!response.ok)
+                throw new Error(
+                  String(
+                    payload.error ||
+                      'Layanan gambar AI belum berhasil membuat poster.',
+                  ),
+                )
+              return payload as {
+                url: string
+                localPath?: string
+                warning?: string
+              }
             })
           : Promise.resolve(null)
 
@@ -435,7 +526,7 @@ export function GenerateContentModal() {
           // Poster only: isi deskripsi ringkas dari prompt/nama agar tetap bisa disimpan ke Konten
           const fallbackText =
             userPrompt.trim() ||
-            `Poster ${productName || profile?.brand || 'produk'} — dibuat dengan AI.`
+            `Poster ${productName || profile?.brand || 'produk'} — disusun di TERKASA.`
           const plat = platforms[0] || 'Instagram'
           setCaptions({ [plat]: fallbackText })
           if (platforms.length === 0) setPlatforms(['Instagram'])
@@ -444,6 +535,7 @@ export function GenerateContentModal() {
         if (needPoster) {
           if (posterResult.status === 'fulfilled' && posterResult.value?.url) {
             setPosterUrl(posterResult.value.localPath || posterResult.value.url)
+            setPosterNotice(posterResult.value.warning || '')
             setPosterStatus('ready')
             setPosterError(null)
           } else {
@@ -463,7 +555,9 @@ export function GenerateContentModal() {
         setStep('result')
       } catch (cause) {
         if (cause instanceof DOMException && cause.name === 'AbortError') return
-        setError(cause instanceof Error ? cause.message : 'Gagal memproses konten.')
+        setError(
+          cause instanceof Error ? cause.message : 'Gagal memproses konten.',
+        )
         setStep('upload')
         setPosterStatus('idle')
       }
@@ -481,6 +575,7 @@ export function GenerateContentModal() {
     style,
     photo,
     posterAspect,
+    posterMode,
     userPrompt,
     businessId,
     catalog,
@@ -501,7 +596,8 @@ export function GenerateContentModal() {
   async function downloadImage(url: string) {
     try {
       const nameFromPath =
-        url.split('?')[0].split('/').filter(Boolean).pop() || `poster-${Date.now()}.png`
+        url.split('?')[0].split('/').filter(Boolean).pop() ||
+        `poster-${Date.now()}.png`
       const response = await fetch(url)
       if (!response.ok) throw new Error('fetch failed')
       const blob = await response.blob()
@@ -546,13 +642,18 @@ export function GenerateContentModal() {
           status,
         })
       } else {
-        const items: Omit<ContentItem, 'id' | 'createdAt'>[] = plats.map((p) => ({
-          title: productName.trim() || profile?.brand || 'Konten Baru',
-          description: captions[p] ?? captions[plats[0]] ?? (userPrompt.trim() || 'Konten AI'),
-          image: imageForSave,
-          platform: p,
-          status,
-        }))
+        const items: Omit<ContentItem, 'id' | 'createdAt'>[] = plats.map(
+          (p) => ({
+            title: productName.trim() || profile?.brand || 'Konten Baru',
+            description:
+              captions[p] ??
+              captions[plats[0]] ??
+              (userPrompt.trim() || 'Konten AI'),
+            image: imageForSave,
+            platform: p,
+            status,
+          }),
+        )
         if (!items.length) {
           throw new Error('Pilih minimal 1 platform sebelum menyimpan.')
         }
@@ -560,12 +661,18 @@ export function GenerateContentModal() {
       }
       closeContentModal()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Gagal menyimpan konten.')
+      setError(
+        cause instanceof Error ? cause.message : 'Gagal menyimpan konten.',
+      )
     }
   }
 
   const processingTexts =
-    mode === 'caption' ? TEXTS_CAPTION : mode === 'poster' ? TEXTS_POSTER : TEXTS_BOTH
+    mode === 'caption'
+      ? TEXTS_CAPTION
+      : mode === 'poster'
+        ? TEXTS_POSTER
+        : TEXTS_BOTH
 
   const ctaLabel =
     mode === 'caption'
@@ -595,13 +702,13 @@ export function GenerateContentModal() {
             ? mode === 'caption'
               ? 'Gemini menyusun caption...'
               : mode === 'poster'
-                ? 'Genity membuat poster...'
-                : 'Gemini + Genity bekerja...'
+                ? 'Menyusun poster...'
+                : 'Menyiapkan materi promosi...'
             : 'Buat Konten Baru'
       }
       subtitle={
         step === 'upload'
-          ? 'Pilih mode · Caption = Gemini · Poster = Genity'
+          ? 'Caption AI dan poster untuk pemasaran peternakan'
           : undefined
       }
       maxWidth="sm:max-w-xl"
@@ -627,7 +734,9 @@ export function GenerateContentModal() {
 
             {/* ── 3 opsi generate ── */}
             <fieldset className="flex flex-col gap-2">
-              <legend className="text-xs font-semibold">Apa yang mau digenerate?</legend>
+              <legend className="text-xs font-semibold">
+                Apa yang mau digenerate?
+              </legend>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {GENERATE_MODES.map((m) => {
                   const active = mode === m.key
@@ -645,13 +754,19 @@ export function GenerateContentModal() {
                     >
                       <span
                         className={`flex size-8 items-center justify-center rounded-lg ${
-                          active ? 'bg-accent text-accent-foreground' : 'bg-secondary text-muted-foreground'
+                          active
+                            ? 'bg-accent text-accent-foreground'
+                            : 'bg-secondary text-muted-foreground'
                         }`}
                       >
                         <Icon className="size-4" aria-hidden="true" />
                       </span>
-                      <span className="text-sm font-semibold leading-snug">{m.label}</span>
-                      <span className="text-[11px] leading-snug text-muted-foreground">{m.desc}</span>
+                      <span className="text-sm font-semibold leading-snug">
+                        {m.label}
+                      </span>
+                      <span className="text-[11px] leading-snug text-muted-foreground">
+                        {m.desc}
+                      </span>
                     </button>
                   )
                 })}
@@ -695,10 +810,12 @@ export function GenerateContentModal() {
                   <span className="flex size-11 items-center justify-center rounded-full bg-accent/15 text-accent">
                     <Camera className="size-5" aria-hidden="true" />
                   </span>
-                  <span className="text-sm font-semibold">Tarik foto atau klik pilih</span>
+                  <span className="text-sm font-semibold">
+                    Tarik foto atau klik pilih
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {mode === 'poster'
-                      ? 'Disarankan — foto kemasan asli biar poster mirip produk (bukan tebak-tebakan)'
+                      ? 'Disarankan — gunakan foto asli ternak atau produk Anda'
                       : 'Opsional — bantu Gemini lebih akurat'}
                   </span>
                 </>
@@ -714,7 +831,10 @@ export function GenerateContentModal() {
             />
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="gc-product-name" className="text-xs font-semibold">
+              <label
+                htmlFor="gc-product-name"
+                className="text-xs font-semibold"
+              >
                 Nama Produk
               </label>
               <input
@@ -735,7 +855,9 @@ export function GenerateContentModal() {
             <div className="flex flex-col gap-1.5">
               <label htmlFor="gc-user-prompt" className="text-xs font-semibold">
                 Prompt / instruksi{' '}
-                <span className="font-normal text-muted-foreground">(opsional, ketik bebas)</span>
+                <span className="font-normal text-muted-foreground">
+                  (opsional, ketik bebas)
+                </span>
               </label>
               <textarea
                 id="gc-user-prompt"
@@ -759,7 +881,9 @@ export function GenerateContentModal() {
                 <legend className="text-xs font-semibold">
                   Platform Tujuan
                   {!needCaption && (
-                    <span className="ml-1 font-normal text-muted-foreground">(untuk label konten)</span>
+                    <span className="ml-1 font-normal text-muted-foreground">
+                      (untuk label konten)
+                    </span>
                   )}
                 </legend>
                 <div className="flex flex-wrap gap-2">
@@ -788,7 +912,11 @@ export function GenerateContentModal() {
                         </span>
                         {p}
                         {active && (
-                          <Check className="size-3.5 text-accent" strokeWidth={3} aria-hidden="true" />
+                          <Check
+                            className="size-3.5 text-accent"
+                            strokeWidth={3}
+                            aria-hidden="true"
+                          />
                         )}
                       </label>
                     )
@@ -800,9 +928,18 @@ export function GenerateContentModal() {
             {(needCaption || needPoster) && (
               <fieldset className="flex flex-col gap-2">
                 <legend className="text-xs font-semibold">
-                  Gaya AI {needCaption && needPoster ? '(Caption + Poster)' : needCaption ? '(Caption · Gemini)' : '(Poster · Genity)'}
+                  Gaya AI{' '}
+                  {needCaption && needPoster
+                    ? '(Caption + Poster)'
+                    : needCaption
+                      ? '(Caption · Gemini)'
+                      : '(Poster)'}
                 </legend>
-                <div role="radiogroup" aria-label="Gaya AI" className="flex flex-wrap gap-2">
+                <div
+                  role="radiogroup"
+                  aria-label="Gaya AI"
+                  className="flex flex-wrap gap-2"
+                >
                   {STYLES.map((s) => (
                     <button
                       key={s}
@@ -821,15 +958,40 @@ export function GenerateContentModal() {
                   ))}
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  Default dari Setting AI: {normalizeAiTone(profile?.ai?.tone)}. Pilihan di sini dipakai
-                  generate ini saja.
+                  Default dari Setting AI: {normalizeAiTone(profile?.ai?.tone)}.
+                  Pilihan di sini dipakai generate ini saja.
                 </p>
               </fieldset>
             )}
 
             {needPoster && (
               <fieldset className="flex flex-col gap-2">
-                <legend className="text-xs font-semibold">Rasio Poster (Genity)</legend>
+                <legend className="text-xs font-semibold">Jenis poster</legend>
+                <div className="mb-2 grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      { value: 'auto', label: 'Otomatis' },
+                      { value: 'ai', label: 'Gambar AI' },
+                      { value: 'template', label: 'Template foto' },
+                    ] as const
+                  ).map((item) => (
+                    <button
+                      key={item.value}
+                      type="button"
+                      aria-pressed={posterMode === item.value}
+                      onClick={() => setPosterMode(item.value)}
+                      className={`min-h-10 rounded-xl border px-2 text-xs font-semibold ${posterMode === item.value ? 'border-accent bg-accent/10 text-accent' : 'border-border text-muted-foreground'}`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="mb-2 text-[11px] leading-relaxed text-muted-foreground">
+                  Template foto memakai foto asli dalam layout TERKASA. Mode
+                  otomatis memakai template jika layanan gambar AI tidak
+                  tersedia.
+                </p>
+                <p className="text-xs font-semibold">Rasio poster</p>
                 <div className="flex flex-wrap gap-2">
                   {POSTER_ASPECTS.map((a) => (
                     <button
@@ -859,7 +1021,8 @@ export function GenerateContentModal() {
               {ctaLabel}
             </button>
             <p className="text-center text-[11px] text-muted-foreground">
-              Hasil disimpan ke tab <strong>Konten</strong> setelah kamu klik simpan.
+              Hasil disimpan ke tab <strong>Konten</strong> setelah kamu klik
+              simpan.
             </p>
           </motion.div>
         )}
@@ -895,8 +1058,11 @@ export function GenerateContentModal() {
               <div className="flex flex-col gap-3 rounded-2xl border border-accent/25 bg-accent/[0.06] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="flex items-center gap-2 text-sm font-semibold">
-                    <ImageIcon className="size-4 text-accent" aria-hidden="true" />
-                    {isEdit ? 'Gambar konten' : 'Poster (Genity)'}
+                    <ImageIcon
+                      className="size-4 text-accent"
+                      aria-hidden="true"
+                    />
+                    {isEdit ? 'Gambar konten' : 'Poster TERKASA'}
                   </span>
                   <div className="flex flex-wrap items-center gap-1.5">
                     {posterUrl && (
@@ -929,6 +1095,14 @@ export function GenerateContentModal() {
                     </button>
                   </div>
                 </div>
+                {posterNotice && (
+                  <p
+                    role="status"
+                    className="rounded-xl border border-accent-warm/30 bg-accent-warm/8 p-3 text-xs leading-relaxed text-muted-foreground"
+                  >
+                    {posterNotice}
+                  </p>
+                )}
                 <input
                   ref={editImageInputRef}
                   type="file"
@@ -941,7 +1115,10 @@ export function GenerateContentModal() {
                 {/* Prompt singkat untuk regenerate di mode edit */}
                 {isEdit && (
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="edit-poster-prompt" className="text-[11px] font-medium text-muted-foreground">
+                    <label
+                      htmlFor="edit-poster-prompt"
+                      className="text-[11px] font-medium text-muted-foreground"
+                    >
                       Prompt regenerate (opsional)
                     </label>
                     <input
@@ -972,8 +1149,11 @@ export function GenerateContentModal() {
                 )}
 
                 {posterStatus === 'loading' || imageBusy ? (
-                  <p className="text-xs text-muted-foreground">Memproses gambar…</p>
-                ) : (posterStatus === 'ready' || isEdit) && (posterUrl || photo) ? (
+                  <p className="text-xs text-muted-foreground">
+                    Memproses gambar…
+                  </p>
+                ) : (posterStatus === 'ready' || isEdit) &&
+                  (posterUrl || photo) ? (
                   <>
                     <div className="relative mx-auto w-full max-w-xs overflow-hidden rounded-xl border border-border bg-background">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1036,7 +1216,11 @@ export function GenerateContentModal() {
                       >
                         {copied === p ? (
                           <>
-                            <Check className="size-3 text-accent" strokeWidth={3} aria-hidden="true" />
+                            <Check
+                              className="size-3 text-accent"
+                              strokeWidth={3}
+                              aria-hidden="true"
+                            />
                             Tersalin
                           </>
                         ) : (
@@ -1050,18 +1234,23 @@ export function GenerateContentModal() {
                   </div>
                   <textarea
                     value={captions[p] ?? ''}
-                    onChange={(e) => setCaptions((prev) => ({ ...prev, [p]: e.target.value }))}
+                    onChange={(e) =>
+                      setCaptions((prev) => ({ ...prev, [p]: e.target.value }))
+                    }
                     rows={needCaption ? 5 : 3}
-                    aria-label={needCaption ? `Caption untuk ${p}` : `Catatan untuk ${p}`}
+                    aria-label={
+                      needCaption ? `Caption untuk ${p}` : `Catatan untuk ${p}`
+                    }
                     className="w-full resize-y rounded-xl border border-input bg-background/60 p-3 text-sm leading-relaxed outline-none transition-all focus:border-accent focus:ring-2 focus:ring-accent/25"
                   />
                 </div>
               ))}
 
             <p className="text-center text-[11px] text-muted-foreground">
-              Setelah disimpan, buka tab <strong className="text-foreground">Konten</strong> → tombol{' '}
-              <strong className="text-[#E1306C]">Post ke IG</strong> untuk salin caption + unduh poster ke
-              Instagram.
+              Setelah disimpan, buka tab{' '}
+              <strong className="text-foreground">Konten</strong> → tombol{' '}
+              <strong className="text-[#E1306C]">Post ke IG</strong> untuk salin
+              caption + unduh poster ke Instagram.
             </p>
             <div className="flex flex-col gap-2.5 sm:flex-row">
               <button
@@ -1097,9 +1286,12 @@ export function ProcessingState({
   const [textIndex, setTextIndex] = useState(0)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTextIndex((i) => Math.min(i + 1, texts.length - 1))
-    }, Math.max(800, durationMs / Math.max(texts.length, 1)))
+    const interval = setInterval(
+      () => {
+        setTextIndex((i) => Math.min(i + 1, texts.length - 1))
+      },
+      Math.max(800, durationMs / Math.max(texts.length, 1)),
+    )
     return () => clearInterval(interval)
   }, [texts.length, durationMs])
 
@@ -1114,8 +1306,16 @@ export function ProcessingState({
       <motion.span
         animate={{ rotate: 360, scale: [1, 1.15, 1] }}
         transition={{
-          rotate: { duration: 3, repeat: Number.POSITIVE_INFINITY, ease: 'linear' },
-          scale: { duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' },
+          rotate: {
+            duration: 3,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'linear',
+          },
+          scale: {
+            duration: 1.4,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
+          },
         }}
         className="flex size-14 items-center justify-center rounded-full bg-accent/15 text-accent"
         aria-hidden="true"
@@ -1136,11 +1336,17 @@ export function ProcessingState({
         </motion.p>
       </AnimatePresence>
 
-      <div className="h-1 w-48 overflow-hidden rounded-full bg-secondary" aria-hidden="true">
+      <div
+        className="h-1 w-48 overflow-hidden rounded-full bg-secondary"
+        aria-hidden="true"
+      >
         <motion.div
           initial={{ width: '0%' }}
           animate={{ width: '100%' }}
-          transition={{ duration: Math.min(durationMs / 1000, 60), ease: 'easeInOut' }}
+          transition={{
+            duration: Math.min(durationMs / 1000, 60),
+            ease: 'easeInOut',
+          }}
           className="h-full rounded-full bg-accent"
         />
       </div>

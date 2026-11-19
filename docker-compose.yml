@@ -24,7 +24,7 @@ services:
   # Gateway WhatsApp Web multi-device (GOWA)
   # Repo: https://github.com/aldinokemal/go-whatsapp-web-multidevice
   gowa:
-    image: aldinokemal2104/go-whatsapp-web-multidevice:latest
+    image: ghcr.io/aldinokemal/go-whatsapp-web-multidevice:v9.10.0
     container_name: umkman-gowa
     restart: unless-stopped
     ports:

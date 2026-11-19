@@ -291,7 +291,7 @@ export function AddTransactionModal() {
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="tx-qty" className="text-xs font-semibold">
-                  Jumlah
+                  Jumlah{catalog.find((item) => item.id === productId)?.livestock ? ' (ekor)' : ''}
                 </label>
                 <input
                   id="tx-qty"
@@ -304,7 +304,7 @@ export function AddTransactionModal() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="tx-price" className="text-xs font-semibold">
-                  Harga Satuan (Rp)
+                  {catalog.find((item) => item.id === productId)?.livestock ? 'Harga per Ekor (Rp)' : 'Harga Satuan (Rp)'}
                 </label>
                 <input
                   id="tx-price"

@@ -23,9 +23,10 @@ function productChunk(product: CatalogProduct): KnowledgeChunk {
       `Nama pendek: ${product.shortName}`,
       `SKU: ${product.sku}`,
       `Varian/ukuran: ${product.variant}`,
+      ...(product.livestock ? [`Jenis ternak: ${product.livestock.species}; ras: ${product.livestock.breed || 'belum diisi'}; kandang: ${product.livestock.pen || 'belum diisi'}`] : []),
       `Harga satuan resmi: ${formatRupiahPlain(product.unitPrice)} (${product.unitPrice} rupiah)`,
-      `Stok saat ini: ${product.stock} unit (${status})`,
-      `Ambang stok menipis: ≤ ${product.lowStockAt} unit`,
+      `Stok saat ini: ${product.stock} ${product.livestock ? 'ekor' : 'unit'} (${status})`,
+      `Ambang stok menipis: ≤ ${product.lowStockAt} ${product.livestock ? 'ekor' : 'unit'}`,
       `Rating: ${product.rating}/5`,
       `Unit terjual (akumulasi saat transaksi final): ${product.sold}`,
       `Deskripsi: ${product.description}`,
@@ -78,6 +79,7 @@ export function getAllKnowledgeChunks(db: BusinessDatabase): KnowledgeChunk[] {
       'pemilik',
       'brand',
       'umkm',
+      'terkasa',
       'umkman',
       'bisnis',
       'client',
@@ -91,7 +93,7 @@ export function getAllKnowledgeChunks(db: BusinessDatabase): KnowledgeChunk[] {
       `Daftar harga satuan resmi ${profile.brand} — sumber: database toko:`,
       ...catalog.map(
         (p) =>
-          `- ${p.name}: ${formatRupiahPlain(p.unitPrice)} | stok ${p.stock} unit | rating ${p.rating}`,
+          `- ${p.name}: ${formatRupiahPlain(p.unitPrice)} | stok ${p.stock} ${p.livestock ? 'ekor' : 'unit'} | rating ${p.rating}`,
       ),
       'Jawab harga HANYA dari daftar ini. Total = harga_satuan × jumlah.',
     ].join('\n'),
@@ -102,12 +104,12 @@ export function getAllKnowledgeChunks(db: BusinessDatabase): KnowledgeChunk[] {
     id: 'stock-overview',
     title: 'Ringkasan Stok (live)',
     content: [
-      `Stok gudang ${profile.brand} (live database, unit generik):`,
+      `Inventori ${profile.brand} (live database; ternak dalam ekor, produk lain dalam unit):`,
       ...catalog.map((p) => {
         const flag = p.stock <= p.lowStockAt ? '⚠ menipis' : '✓ aman'
-        return `- ${p.shortName}: ${p.stock} unit ${flag}`
+        return `- ${p.shortName}: ${p.stock} ${p.livestock ? 'ekor' : 'unit'} ${flag}`
       }),
-      `Total unit stok: ${catalog.reduce((s, p) => s + p.stock, 0)}`,
+      `Total jumlah stok (satuan campuran): ${catalog.reduce((s, p) => s + p.stock, 0)}`,
       'Restock prioritaskan SKU menipis + penjualan tinggi.',
     ].join('\n'),
     keywords: ['stok', 'stock', 'inventory', 'habis', 'menipis', 'restock', 'gudang', 'tersedia', 'ready'],
@@ -135,6 +137,7 @@ export function getAllKnowledgeChunks(db: BusinessDatabase): KnowledgeChunk[] {
       'riwayat',
       'bantuan',
       'help',
+      'terkasa',
       'umkman',
     ],
   }

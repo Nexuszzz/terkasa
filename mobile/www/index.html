@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <meta name="color-scheme" content="dark" />
-    <title>UMKMan</title>
+    <title>TERKASA</title>
     <style>
       :root {
         color-scheme: dark;
@@ -81,29 +81,27 @@
   <body>
     <main>
       <div>
-        <div class="logo" aria-hidden="true">U</div>
-        <h1>UMKMan</h1>
+        <div class="logo" aria-hidden="true">T</div>
+        <h1>TERKASA</h1>
         <p>
-          Membuka aplikasi… Pastikan HP terhubung internet. Backend jalan di
-          Vercel (aman meski Docker laptop mati).
+          Membuka aplikasi… Pastikan perangkat Anda terhubung ke internet.
         </p>
         <div class="spin" aria-hidden="true"></div>
         <p class="hint">
-          Fallback offline. Buka di browser:
-          <a href="https://umkman.vercel.app">umkman.vercel.app</a>
+          Jika aplikasi belum terbuka, coba lagi melalui
+          <a id="server-link" hidden>buka TERKASA di browser</a>.
         </p>
       </div>
     </main>
+    <script src="server-config.js"></script>
     <script>
-      // Jika server.url Capacitor gagal, coba redirect manual
-      setTimeout(function () {
-        try {
-          if (location.protocol === 'https:' || location.protocol === 'http:') {
-            return
-          }
-          location.replace('https://umkman.vercel.app')
-        } catch (e) {}
-      }, 2500)
+      // Generated from the same URL used by the Capacitor WebView.
+      var target = window.TERKASA_SERVER_URL
+      if (target && /^https?:\/\//.test(target)) {
+        var link = document.getElementById('server-link')
+        link.href = target
+        link.hidden = false
+      }
     </script>
   </body>
 </html>

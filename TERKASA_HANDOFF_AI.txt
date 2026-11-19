@@ -1,0 +1,735 @@
+TERKASA — SERAH TERIMA PROYEK UNTUK AI BERIKUTNYA
+Versi catatan: 20 November 2026 | Zona waktu pengguna: Asia/Jakarta
+
+Dokumen ini sengaja dibuat sebagai TXT yang dapat langsung dilampirkan atau
+ditempel ke AI lain. Isinya mencakup konteks, kondisi kode, hasil pengujian,
+pekerjaan yang belum selesai, cara analisis, serta prompt siap pakai.
+Tidak ada API key, password, cookie, token Instagram, atau isi database privat.
+
+PEMBARUAN REPOSITORI — 20 NOVEMBER 2026:
+Pengguna meminta source dikirim ke https://github.com/Nexuszzz/terkasa.
+Target branch adalah main; repo sumber lama disimpan sebagai remote upstream.
+Gunakan git status, git log, dan git ls-remote origin refs/heads/main untuk
+memeriksa commit lokal/remote. Bagian historis yang menyebut belum di-commit
+atau belum di-push menjelaskan keadaan sebelum publikasi source ini.
+Env, database runtime, folder .recovery/.verification, .state/.venv gateway,
+cookie, dan media privat tidak disertakan dalam source Git. Push source tidak
+melakukan deployment atau memindahkan sesi akun dari laptop ke hosting.
+
+STATUS INTEGRASI TERAKHIR:
+- GOWA diperbarui ke v9.10.0 setelah log menunjukkan Client outdated (405).
+  QR PNG 512x512 berhasil dibuat lewat adapter TERKASA dalam ~1 detik.
+  Konfigurasi, storages, statics dicadangkan privat sebelum pembaruan;
+  volume umkm-an-modal-components_umkman_gowa tetap dipakai. Pairing HP
+  belum dikonfirmasi; tidak ada pesan dikirim. Bukti pairing-test.json
+  di .verification/gowa-restart/. Jalankan Compose dengan -p
+  umkm-an-modal-components pada laptop ini agar tidak berpindah volume.
+- Instagram gateway 6.0.0 online, satu sesi lama login_required/session_expired.
+  Pengguna diminta login ulang akun lama pada formulir lokal aplikasi.
+  Belum ada hasil login baru; tidak ada publikasi Instagram dilakukan.
+
+RIWAYAT GOWA SEBELUM PEMBARUAN IMAGE — 19 NOVEMBER 2026, 22.54 WIB:
+Pengguna meminta gateway WhatsApp dihidupkan lagi. Docker Desktop/engine dan
+container umkman-gowa sudah aktif kembali di port 3100, memakai volume sesi
+lama tanpa pembuatan ulang/penghapusan. Health dan daftar device HTTP 200.
+Dua device tersimpan sama-sama connected=false dan loggedIn=false; nomor
+masih perlu QR/kode pairing pada Pengaturan → WhatsApp. Webhook TERKASA
+HTTP 200, tetapi belum ada uji pesan masuk/balasan. Tidak ada pesan dikirim.
+Bukti: .verification/gowa-restart/status.json. Catatan gateway offline di
+bagian historis di bawah sudah tidak mencerminkan status GOWA terbaru.
+
+PEMBARUAN PALING BARU — GEMINI WEB, 19 NOVEMBER 2026:
+Pengguna mengubah pilihan API resmi menjadi Gemini Web → API. Implementasi
+aktif ada di integrations/gemini-web/, memakai gemini-webapi==2.1.1 dari
+HanaokaYuzu/Gemini-API dan gateway FastAPI lokal 127.0.0.1:8008. Akun pemilik
+sudah diverifikasi menggunakan file ekspor yang secara eksplisit diberikan.
+JANGAN menampilkan/menyalin cookie, file ekspor, .state, atau .env.local ke chat.
+Sesi tersimpan lokal; .state dan .venv diabaikan Git dan tracing Next.js.
+
+Uji nyata: caption dengan foto HTTP 200, JSON valid (~46 detik); poster asli
+hasil generasi HTTP 200, JPEG 1024x1024 valid (~84 detik). Hasil gambar sudah
+diperiksa visual. Bukti .verification/gemini-web/live-results.json dan poster.jpg.
+TERKASA :3000 melaporkan provider=gemini-web, configured=true, ready=true.
+16 tes Python, 8 tes adapter TS, 8 kelompok HTTP aplikasi dengan gateway
+fixture lulus; 19 tes inventori, 6 tes integrasi lama dan build/typecheck lulus.
+Tes HTTP memakai data terpisah dan upstream fixture, bukan login ke akun lama.
+
+Konfigurasi .env.local: GEMINI_BACKEND=web, POSTER_IMAGE_PROVIDER=gemini-web,
+GEMINI_WEB_BASE_URL=loopback:8008, GEMINI_WEB_MODEL=auto. Jangan menyalin key
+ke NEXT_PUBLIC_* atau menulis nilainya ke dokumentasi. Script konfigurasi
+scripts/configure-gemini-web.mjs mencadangkan env dulu. Start gateway melalui
+integrations/gemini-web/start.ps1; petunjuk lengkap dan perbandingan GitHub
+ada di docs/GEMINI-WEB-GATEWAY.md dan integrations/gemini-web/README.md.
+
+Ini protokol Gemini Web tidak resmi; sesi/kuota/fitur mengikuti akun dan dapat
+berubah. Tidak ada retry generasi otomatis, scraping profil browser, atau
+pool akun. Model dipilih dari akun, bukan hardcode model API cloud. Hanya
+GeneratedImage diterima sebagai gambar AI; hasil pencarian ditolak. Poster
+otomatis tetap mempunyai template foto lokal dengan label bukan generatif.
+Satu akun gateway dipakai server; belum ada pemisahan sesi Google per tenant.
+Instagram/WhatsApp tetap membutuhkan sambungan ulang; tidak ada posting atau
+pesan dikirim. Saat uji gateway ini belum ada push/deploy. Catatan API cloud/Genity di bawah historis.
+
+Audit baru: 9 nilai credential/cookie diperiksa pada 245 file source dan 29
+file frontend; tidak ada credential privat baru ditemukan. 34 trace tidak
+memuat env, folder pemulihan/verifikasi, atau gateway/state. Lima file lama
+masih memuat nilai demo GOWA yang juga ada pada HEAD sumber; dicatat terpisah.
+Database usaha byte-identik. Semua record pengguna identik; hanya metadata
+root version/updatedAt users.json berbeda. Jangan menimpa file pengguna demi
+memaksa hash historis sama. Audit: .verification/gemini-web/audit.json.
+
+RIWAYAT PEMERIKSAAN API SEBELUM GEMINI WEB — 19 NOVEMBER 2026:
+Pada pemeriksaan ulang setelah dokumen awal dibuat, server TERKASA di port
+3000 aktif dan HTTP 200. Satu permintaan teks Gemini model konfigurasi saat ini
+mendapat 503 UNAVAILABLE tanpa teks; keberhasilan 17 November adalah historis,
+bukan status API yang selalu sehat. Origin Genity timeout. Gateway Instagram
+lokal :8000 dan WhatsApp :3100 tidak dapat dihubungi pada pemeriksaan ini.
+Google OAuth masih sebatas konfigurasi tersedia, belum diuji login sampai akhir.
+Database PostgreSQL, Blob, dan credential fallback Instagram Graph pada env
+belum dikonfigurasi. Tidak ada generasi gambar atau posting/pesan sosial
+dilakukan pada cek ulang. Bukti: .verification/api-status-20261119.json.
+
+==========================================================================
+1. BACA INI DAHULU — POSISI PROYEK SAAT SERAH TERIMA
+==========================================================================
+
+Nama platform: TERKASA.
+Direktori proyek yang BENAR:
+  D:\projkwblampung\terkasa
+
+Jangan mengerjakan D:\projkwblampung sebagai aplikasi TERKASA. Direktori induk
+memuat proyek lain (VERGO/SAP) beserta package.json, app, dan node_modules sendiri.
+Selalu periksa working directory sebelum menjalankan npm atau mengubah file.
+
+Repo sumber: https://github.com/Nexuszzz/projekwebumk
+Repo TERKASA: https://github.com/Nexuszzz/terkasa
+Branch publikasi: main (sebelumnya rebrand/terkasa)
+HEAD dasar: dcbd9fd — Update .env.example
+
+PENTING: periksa status Git dan commit remote terkini sebelum bekerja.
+Jangan reset/checkout/clean hanya untuk membuat repo terlihat bersih; tindakan
+itu dapat menghilangkan perubahan lokal pengguna. Source Git tidak mencakup
+env/data runtime hasil pemulihan. Website/gateway belum di-deploy oleh pekerjaan ini.
+
+Status ringkas:
+- Clone dan analisis repo/lokal: selesai, terdokumentasi.
+- Pemulihan env, akun, data usaha, dan media lama: selesai secara lokal.
+- Rebranding TERKASA: sudah diterapkan pada web dan shell Android.
+- Inventori sapi/domba/kambing/dll: sudah diimplementasikan dan diuji.
+- Caption/visi: gateway Gemini Web aktif dan caption dengan foto berhasil.
+  Parser transaksi mengikuti adapter sama; kontrak HTTP diuji dengan fixture.
+- Poster template dari foto: berfungsi dan sudah diuji lewat aplikasi.
+- Gambar generatif Gemini Web: satu poster nyata berhasil; Genity lama tetap gagal.
+- Instagram lama: gateway pernah dipulihkan, sesi akun kedaluwarsa; perlu login ulang.
+- WhatsApp: gateway pernah dipulihkan, device lama perlu pairing ulang.
+- Landing page baru: selesai dibuat dan diuji desktop/ponsel.
+- Permintaan pengguna paling akhir: commit dan push source ke Nexuszzz/terkasa.
+
+Build dan typecheck terakhir pada 19 November 2026 berhasil. Status API eksternal
+di bawah adalah hasil uji pada 17 November, bukan jaminan layanan selalu online.
+Saat dokumen awal dibuat server QA 3000/3017/3020 telah dihentikan. Pada cek
+status API sesudahnya, TERKASA di port 3000 sudah kembali aktif (HTTP 200).
+Jangan menimpa atau menghentikan server yang kini dijalankan pengguna.
+
+==========================================================================
+2. TUJUAN DAN KEINGINAN PENGGUNA
+==========================================================================
+
+Judul lengkap yang diberikan pengguna:
+"TERKASA: Inovasi Platform Manajemen Inventori Peternakan dan Otomatisasi
+Pemasaran Digital Berbasis Artificial Intelligence untuk Meningkatkan Efisiensi
+dan Daya Saing UMKM Peternakan."
+
+Permintaan inti:
+1) Gunakan proyek GitHub yang sudah ada sebagai dasar, bukan membuat aplikasi
+   terpisah yang kehilangan fitur dan alur lama.
+2) Analisis repo secara mendalam dan cari sisa proyek/env/data di laptop.
+3) Ubah identitas platform menjadi TERKASA.
+4) Sediakan pengelolaan jumlah sapi, domba, kambing, dan ternak lain.
+5) Pertahankan hubungan inventori, transaksi, laporan, AI, dan pemasaran.
+6) Uji dan pulihkan koneksi layanan yang tersedia.
+7) Perbagus website, terutama landing page; gunakan skill imagegen, pisahkan
+   aset dengan rapi, dan susun alur halaman secara sistematis.
+
+Klarifikasi penting yang sudah diberikan pengguna:
+- Instagram: gunakan akun lama yang sama. Jangan bertanya ulang akun mana
+  tanpa alasan baru; belum ada bukti pengguna menyelesaikan login ulang.
+- "Plan" landing page berarti SUSUNAN DAN ALUR HALAMAN, bukan paket harga.
+  Jangan menambahkan harga langganan atau billing yang tidak diminta.
+- Pengguna menyukai tindakan nyata dan kelanjutan pekerjaan, bukan jawaban
+  berhenti pada rencana atau konfirmasi berulang untuk pekerjaan rutin.
+
+==========================================================================
+3. CARA MELANJUTKAN DI LAPTOP INI
+==========================================================================
+
+Terminal PowerShell:
+  cd D:\projkwblampung\terkasa
+  git status --short
+  git branch --show-current
+  npm run dev
+
+Buka http://localhost:3000
+
+Jika perlu membatasi server hanya ke laptop:
+  node node_modules/next/dist/bin/next dev --hostname 127.0.0.1 --port 3000
+
+Untuk produksi lokal:
+  npm run build
+  node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000
+
+Pemeriksaan yang tersedia:
+  npm run typecheck
+  npm run test:inventory
+  npm run test:integrations
+  npm run build
+
+Node.js yang digunakan sebelumnya: 22.16.0. Dependensi sudah terpasang.
+Jangan menjalankan npm ci berulang tanpa kebutuhan atau mengubah lockfile
+hanya untuk merapikan. Jika dipindahkan ke mesin baru, npm ci diperlukan.
+
+.env.local SUDAH ADA dan berisi konfigurasi hasil pemulihan.
+Jangan menimpanya dengan .env.example. Jangan mencetak nilainya ke chat/log.
+
+Catatan Windows: penerusan argumen dengan npm start -- --hostname ... sempat
+tidak sesuai harapan. Perintah langsung ke node_modules/next/dist/bin/next
+di atas sudah terbukti bekerja.
+
+Jika AI lain tidak dapat mengakses laptop ini, TXT saja memberi konteks tetapi
+bukan source code. Sertakan salinan kode yang sudah disanitasi atau akses ke
+checkout yang benar. Jangan membagikan .env.local, .recovery, database akun,
+cookie, atau folder verifikasi yang memuat sesi uji.
+
+==========================================================================
+4. ATURAN REPO DAN TEKNOLOGI
+==========================================================================
+
+Instruksi induk:
+  D:\projkwblampung\AGENTS.md
+
+Aturan Next.js: baca panduan versi TERPASANG sebelum mengubah kode:
+  D:\projkwblampung\terkasa\node_modules\next\dist\docs\
+Jangan mengandalkan konvensi Next.js dari ingatan saja.
+
+Stack saat ini:
+- Next.js 16.2.6, App Router, React 19, TypeScript, Tailwind CSS 4.
+- Server: route handlers Next.js dengan runtime Node untuk integrasi/media.
+- Auth: bcrypt + JWT HS256/jose, httpOnly cookie, Google OAuth opsional.
+- Data: JSON lokal atau Prisma 6/PostgreSQL bila DATABASE_URL diset.
+- Media: storage disk lokal; integrasi Blob bila credential tersedia.
+- AI teks/visi dan gambar: gateway Gemini Web; Genity adapter lama tetap tersedia.
+  Fallback poster adalah template foto TERKASA. Detail terbaru pada awal TXT ini.
+- WhatsApp: GOWA per device/usaha.
+- Instagram: Graph API atau gateway private aiograpi-rest.
+- Android: Capacitor 8, WebView ke server, bukan aplikasi backend/offline terpisah.
+
+Middleware dimigrasikan menjadi proxy.ts sesuai Next 16. Matcher/auth dipertahankan.
+Font Inter, Space Grotesk, dan JetBrains Mono dibundel dari app/fonts melalui
+next/font/local, dengan lisensi. Build tidak lagi bergantung unduhan Google Fonts.
+
+Identifier kompatibilitas yang sengaja dipertahankan:
+- Cookie teknis umkman_*.
+- ID paket Android id.umkman.app.
+- Nama volume/database/credential gateway lama serta ID akun/usaha.
+Jangan mengganti semuanya secara massal hanya karena masih mengandung nama lama.
+
+==========================================================================
+5. HASIL ANALISIS DAN PEMULIHAN LOKAL
+==========================================================================
+
+Sumber utama pemulihan:
+  D:\webcv\umkm-an-modal-components
+Sumber ini paling lengkap, berisi env, 3 usaha, 4 akun, media, dan dokumen lama.
+
+Sumber pendamping:
+  D:\umkm-an-modal-components
+  C:\Users\NAUFAL\Downloads\umkm-an-modal-components
+  C:\Users\NAUFAL\Downloads\projekwebumk-main\projekwebumk-main
+  ZIP proyek di D: dan Downloads.
+
+Pemilihan sumber mempertimbangkan isi dan tanggal internal data, bukan hanya
+waktu modifikasi file. Database tidak digabung otomatis agar akun/usaha tidak
+terduplikasi. Arsip RAR yang ditemukan belum seluruhnya diverifikasi isinya.
+
+Cadangan privat:
+  D:\projkwblampung\terkasa\.recovery\
+  D:\projkwblampung\terkasa\.recovery\manifest.json
+
+Folder tersebut memuat salinan env/database, checksum, patch lokal, media,
+APK/dokumen lama. Diabaikan Git dan jangan diunggah sembarangan.
+
+Data aktif lokal:
+  D:\projkwblampung\terkasa\data\business-db.json
+  D:\projkwblampung\terkasa\data\users.json
+  D:\projkwblampung\terkasa\storage\uploads\
+
+Tanpa DATABASE_URL, aplikasi memakai JSON. Audit terakhir menunjukkan checksum
+dua database masih sama dengan sumber pemulihan. Brand usaha/produk lama tidak
+diubah menjadi peternakan secara otomatis; yang direbranding adalah PLATFORM.
+
+==========================================================================
+6. INVENTORI TERNAK — PERILAKU YANG SUDAH ADA
+==========================================================================
+
+Jenis: sapi, domba, kambing, ayam, bebek, kerbau, lainnya.
+Metadata tiap kelompok: species, breed/ras, pen/kandang.
+Data terkait: nama, stok dalam ekor, harga per ekor, ambang stok rendah.
+
+Fitur:
+- Tambah dan edit kelompok ternak.
+- Tambah/kurangi jumlah dengan pratinjau stok sesudah perubahan.
+- Cari nama/ras/kandang, filter jenis, lihat komposisi.
+- Total ternak, jenis aktif, stok rendah, estimasi nilai jual.
+- Inventori menggunakan katalog yang sama dengan transaksi dan laporan.
+- Penjualan mengurangi stok; koreksi jumlah bukan transaksi penjualan.
+- Jumlah ternak dan kuantitas penjualan ternak harus bilangan bulat.
+- Pengurangan melebihi stok, stok negatif, nilai pecahan dan harga tidak valid
+  ditolak pada jalur yang diimplementasikan.
+- Perubahan stok memakai operasi atomik/antrean sesuai data layer.
+- Pergantian usaha memuat ulang inventori usaha yang dipilih.
+
+Peta kode:
+  components/dashboard/livestock-inventory.tsx — antarmuka inventori nyata.
+  lib/livestock.ts — jenis, normalisasi, validasi dan ringkasan.
+  lib/types.ts — CatalogProduct.livestock opsional.
+  lib/dashboard-store.tsx — state/fungsi dashboard.
+  lib/server/db.ts — adapter JSON/PostgreSQL.
+  lib/server/db-file.ts — persistensi JSON dan stok.
+  lib/server/db-pg.ts — persistensi PostgreSQL dan stok.
+  app/api/catalog/route.ts — CRUD/perubahan stok katalog.
+  app/api/transactions/route.ts — transaksi.
+  prisma/schema.prisma — Product.livestock Json?.
+  prisma/terkasa-livestock.sql — ALTER TABLE products ADD COLUMN IF NOT EXISTS
+                                  livestock JSONB.
+
+SQL aditif tersedia tetapi BELUM dijalankan pada database produksi. Jangan
+menjalankan db:push, seed, reset, atau migrasi terhadap data produksi hanya
+untuk melihat UI. Mode JSON lokal tidak membutuhkan migrasi tersebut.
+
+==========================================================================
+7. STATUS API DAN INTEGRASI — BEDAKAN KODE DENGAN KONEKSI NYATA
+==========================================================================
+
+A. GEMINI TEKS
+Uji 17 November: daftar model HTTP 200; key ditemukan dan dapat dipakai.
+Model konfigurasi lama gemini-3.5-flash mendapat 503 UNAVAILABLE.
+gemini-3.5-flash-lite mendapat 200 dan dipasang sebagai model/default teks.
+Caption melalui API aplikasi terautentikasi berhasil. Parsing kalimat penjualan
+berhasil mengenali 2 ekor sapi. Ini bukan transaksi nyata yang dicatat.
+
+Helper lib/server/gemini-client.ts memakai x-goog-api-key, bukan key pada URL.
+Satu retry untuk gangguan sementara 502/503/504/network dalam deadline yang sama.
+403 dan 429 tidak diulang. Jangan menganggap mengganti prompt menyelesaikan
+masalah billing, kuota, atau provider down.
+
+B. GAMBAR GENERATIF APLIKASI
+GenityBoost: satu percobaan generate mendapat HTTP 522; tidak ada job yang
+diketahui berhasil dibuat. Percobaan tidak diulang terus-menerus.
+Alternatif Gemini gambar: satu percobaan gemini-3.1-flash-lite-image mendapat
+429 RESOURCE_EXHAUSTED, tidak ada gambar dihasilkan.
+KESIMPULAN: generasi gambar AI melalui integrasi aplikasi BELUM dinyatakan pulih.
+Status ini perlu diverifikasi lagi jika menjadi tugas berikutnya.
+
+C. POSTER TEMPLATE
+app/api/ai/poster mendukung posterMode auto | ai | template.
+Template lokal melalui sharp memakai foto raster asli dan layout TERKASA.
+Auto dapat fallback ketika Genity tidak tersedia. Hasil menyatakan provider
+template dan generatedImage=false; jangan dipresentasikan sebagai gambar AI.
+Tanpa foto, gambar menyatakan foto belum ditambahkan. Placeholder SVG katalog
+tidak lagi diperlakukan sebagai foto raster asli.
+
+Foto besar tidak lagi diam-diam hilang pada batas lama 200 KB. Client
+mengompresi/mengunggah foto sebelum mengirim referensi pendek ke generator.
+Poster berhasil dibuat, disimpan ke media privat, diunduh pemilik, dan akses
+anonim ditolak 401 pada uji. Draft konten berhasil disimpan dari browser.
+
+Peta kode:
+  lib/server/poster-template.ts
+  lib/server/genty.ts
+  lib/server/gemini-vision.ts
+  lib/server/image-source.ts
+  lib/server/media-store.ts
+  app/api/ai/poster/route.ts
+  components/dashboard/generate-content-modal.tsx
+
+D. INSTAGRAM
+Docker Desktop/gateway aiograpi-rest 6.0.0 sempat dipulihkan dan online.
+Sesi lama diuji melalui GET /account: login_required/session_expired.
+Pengguna memilih AKUN INSTAGRAM LAMA YANG SAMA untuk disambungkan ulang.
+Belum ada bukti pengguna menyelesaikan login ulang dan sesi menjadi valid.
+
+Langkah pengguna: masuk aplikasi lama > pilih usaha yang sesuai > Pengaturan >
+Instagram > isi login/2FA langsung di formulir > simpan session > Refresh.
+Keberhasilan: muncul "Sesi Instagram berhasil diverifikasi."
+Jangan meminta password, 2FA, atau cookie di chat. Jangan memalsukan status
+terhubung hanya karena ada session tersimpan atau gateway online.
+
+GET /api/instagram/private/login sekarang memverifikasi sesi yang disimpan.
+Komponen koneksi dan modal posting memakai sessionValid.
+Mode private API tetap berstatus demo/tidak resmi sebagaimana UI yang ada.
+Credential Graph API resmi belum ditemukan. API private bukan bukti integrasi
+Meta resmi sudah siap produksi. Tidak ada posting Instagram selama pengerjaan.
+
+Peta kode:
+  lib/server/aiograpi-client.ts
+  lib/server/instagram.ts
+  app/api/instagram/private/login/route.ts
+  app/api/instagram/private/publish/route.ts
+  app/api/instagram/connect/route.ts
+  app/api/instagram/publish/route.ts
+  components/dashboard/instagram-connect.tsx
+  components/dashboard/instagram-post-modal.tsx
+
+E. WHATSAPP
+Gateway/container GOWA sempat online. Satu device lama mendapat status
+connected=false, loggedIn=false. Perlu pairing ulang QR/kode melalui ponsel
+pemilik nomor dan Pengaturan > WhatsApp. Tidak ada pesan pelanggan dikirim.
+Status container/device saat ini harus dicek ulang jika dibutuhkan; jangan
+menyamakan laporan historis dengan layanan yang pasti sedang hidup.
+
+F. YANG BELUM TERSEDIA/TERBUKTI
+- DATABASE_URL dan credential Blob tidak ditemukan pada sumber env utama.
+- Login Google belum diuji sampai selesai ke akun eksternal; callback Console
+  harus sesuai URL yang benar.
+- Posting Tokopedia/Lazada bukan koneksi marketplace otomatis; konten/status
+  lokal tidak membuktikan publikasi di marketplace.
+- "Jadwal posting cerdas" saat ini saran waktu di prompt, BELUM scheduler.
+- "Balas komentar otomatis" pada pengaturan adalah draf balasan AI, BELUM
+  webhook komentar Instagram yang otomatis mengirim balasan.
+
+Nama variabel yang relevan (NAMA SAJA, bukan nilainya):
+  GEMINI_API_KEY, GEMINI_MODEL, GENTY_API_KEY, GENTY_BASE_URL,
+  POSTER_TEMPLATE_FALLBACK, AUTH_SECRET, NEXT_PUBLIC_APP_URL,
+  GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOWA_BASE_URL, GOWA_BASIC_AUTH,
+  GOWA_WEBHOOK_SECRET, AIOGRAPI_BASE_URL, DATABASE_URL,
+  BLOB_READ_WRITE_TOKEN, BLOB_STORE_ID, INSTAGRAM_ACCESS_TOKEN,
+  INSTAGRAM_BUSINESS_ACCOUNT_ID, CAPACITOR_SERVER_URL.
+
+==========================================================================
+8. LANDING PAGE TERBARU — SELESAI 19 NOVEMBER
+==========================================================================
+
+Gaya: hijau hutan + lime TERKASA, permukaan terang untuk konten, Space Grotesk
+dan Inter lokal, foto peternakan, tata letak responsif, gerakan ringan.
+
+Susunan yang disetujui:
+  Pembuka > jenis ternak/fitur > demo inventori > contoh promosi > cara kerja >
+  FAQ > ajakan mulai > footer.
+
+Komponen aktif:
+  app/page.tsx — memanggil LandingPage.
+  components/landing/landing-page.tsx — susunan dan konten halaman.
+  components/landing/landing-header.tsx — nav desktop dan menu ponsel.
+  components/landing/inventory-demo.tsx — demo lokal tambah/kurangi/filter/reset.
+  components/landing/marketing-preview.tsx — tab poster/caption dan salin teks.
+  components/landing/landing.module.css — gaya khusus halaman.
+
+JANGAN mengedit components/hero.tsx, navbar.tsx, sections.tsx, atau
+floating-cards.tsx lalu menganggap landing terbaru berubah. Komponen lama itu
+masih ada sebagai kode terdahulu, tetapi app/page.tsx kini memakai folder landing.
+Periksa import dan pemakaian sebelum menghapus kode lama.
+
+Demo landing berbeda dari inventori nyata dashboard:
+- Demo: 24 sapi + 18 domba + 12 kambing = 54 ekor, Rp711.000.000.
+- Dua penambahan sapi -> 56 ekor, Rp761.000.000.
+- Filter, pengurangan sampai nol dan reset sudah diuji.
+- Demo hanya state browser; tidak memodifikasi database pengguna.
+- Poster/caption memakai usaha fiktif Peternakan Makmur dan diberi label contoh.
+- Tidak ada tarif/testimoni/statistik pelanggan yang dikarang.
+
+==========================================================================
+9. ASET IMAGEGEN — SUMBER, WEB, DAN PROMPT
+==========================================================================
+
+Dua foto dibuat menggunakan built-in image_gen dalam sesi coding.
+INI BERBEDA dari gateway Gemini Web aplikasi yang ditambahkan kemudian;
+gateway baru telah berhasil membuat satu gambar nyata pada 19 November.
+Keberhasilan membuat aset landing tidak membuktikan endpoint gambar aplikasi pulih.
+
+Sumber PNG asli:
+  D:\projkwblampung\terkasa\assets\landing\source\cattle-pasture-v1.png
+  D:\projkwblampung\terkasa\assets\landing\source\sheep-pasture-v1.png
+
+WebP yang dipakai website:
+  D:\projkwblampung\terkasa\public\assets\landing\generated\cattle-pasture-v1.webp
+  D:\projkwblampung\terkasa\public\assets\landing\generated\sheep-pasture-v1.webp
+
+Prompt persis, mode, dan pemetaan file:
+  D:\projkwblampung\terkasa\assets\landing\prompts.json
+  D:\projkwblampung\terkasa\assets\landing\README.md
+
+Pembuatan ulang WebP (tidak memanggil API gambar):
+  node scripts/prepare-landing-assets.mjs
+
+Kedua WebP berjumlah 518.440 byte (sekitar 506 KiB); sumber PNG dipisahkan.
+Foto adalah ilustrasi AI, bukan dokumentasi peternakan pengguna. Label konteks
+tersebut dipertahankan. Teks poster dibuat dengan HTML/CSS agar tetap dapat diedit.
+
+Ringkasan prompt visual sapi:
+"Photorealistic editorial agricultural landscape, landscape 3:2; brown
+Limousin-type cow in right foreground with anatomically correct body/four legs,
+two grazing cattle behind; lush Indonesian pasture, rolling hills, tropical
+trees, distant timber shelter; warm early morning light, distant mist, natural
+fur and grass texture; no people/text/logos/watermark/UI/collage."
+
+Ringkasan prompt visual domba:
+"Photorealistic editorial photograph of three white sheep on lush Indonesian
+smallholder pasture; nearest sheep in three-quarter full-body view, two behind;
+wooden fence, low hills, real wool texture, warm morning light; square portrait-
+friendly composition; no people/text/logos/UI/watermarks/distorted anatomy."
+
+Untuk reproduksi yang persis, gunakan prompt lengkap dalam prompts.json,
+bukan hanya ringkasan di atas. Simpan varian baru dengan nama versi baru.
+
+==========================================================================
+10. HASIL PENGUJIAN DAN BUKTINYA
+==========================================================================
+
+Pengujian pada tahap inventori/pemulihan:
+- 19 pemeriksaan domain inventori/regresi berhasil.
+- 7 kelompok HTTP inventori/regresi berhasil.
+- 9 pemeriksaan browser inventori berhasil.
+- 6 pemeriksaan integrasi offline berhasil.
+- 6 kelompok HTTP pemulihan integrasi berhasil, termasuk uji Gemini nyata.
+- Typecheck dan build berhasil; cap:sync berhasil dengan 5 plugin.
+
+Pengujian landing pada 19 November:
+- Build produksi, typecheck, git diff --check berhasil.
+- Gambar termuat, satu h1, target anchor ada.
+- Demo hitungan/nilai/filter/batas nol/reset bekerja.
+- Salin caption, tab dengan tombol panah, dan FAQ bekerja.
+- Menu ponsel dapat ditutup dengan Escape atau memilih tautan.
+- Tidak ada overflow horizontal pada lebar CSS 320, 391, 1280, dan 1440.
+- Landing dan login produksi lokal HTTP 200; CTA membuka formulir login.
+
+Jangan mengklaim semua tes integrasi live dijalankan ulang pada tanggal 19.
+Pada tanggal itu perubahan utama adalah landing; bukti live API berasal dari
+tahap pemulihan sebelumnya. Bukti build tidak sama dengan tes PostgreSQL live.
+
+Bukti privat/diabaikan Git:
+  .verification/results.json
+  .verification/http-results.json
+  .verification/browser-results.json
+  .verification/recovery-live/app-tests.json
+  .verification/recovery-live/gemini-tests.json
+  .verification/recovery-live/genity-test.json
+  .verification/recovery-live/native-poster-test.json
+  .verification/recovery-live/instagram-tests.json
+  .verification/recovery-live/whatsapp-tests.json
+  .verification/recovery-live/final-audit.json
+  .verification/landing-v2/results.json
+
+Screenshot landing:
+  .verification/landing-v2/desktop-final.jpg
+  .verification/landing-v2/inventory-desktop.jpg
+  .verification/landing-v2/marketing-desktop.jpg
+  .verification/landing-v2/mobile-final.jpg
+
+Audit tahap landing (sebelum gateway): dua database identik dengan sumber. Enam credential privat
+tidak ditemukan dalam 29 berkas JS/CSS frontend atau diff Git; 34 file trace
+server tidak memuat .env.local, .recovery, atau .verification.
+Ini pemeriksaan terbatas, bukan sertifikasi keamanan seluruh aplikasi.
+
+Gangguan build yang sudah dibetulkan pada 19 November:
+- Import useState1 dari modul 'java' yang tidak terpakai di dashboard.
+- Dua baris bukan sintaks Prisma: @@int profil dan @usr bisnis.
+- Ikon Instagram tidak tersedia di lucide versi terpasang; landing kini memakai
+  ikon brand yang sudah ada di proyek.
+Backup schema sebelum pembetulan:
+  .recovery/schema-before-landing-build-fix-20261119.prisma
+Tidak ada migrasi database akibat pembetulan ini.
+
+Peringatan build tersisa: tracing akses media dinamis dan konfigurasi Prisma
+package.json yang deprecated. Build tetap berhasil. Jangan menaikkan major
+Prisma/Next tanpa kebutuhan dan rencana migrasi yang jelas.
+
+==========================================================================
+11. ANALISIS MENDALAM — APA YANG PERLU DIPERIKSA AI BERIKUTNYA
+==========================================================================
+
+Pisahkan empat lapisan status:
+  (a) implementasi source code,
+  (b) uji lokal/fixture,
+  (c) koneksi layanan eksternal,
+  (d) kesiapan deployment produksi.
+Jangan menyimpulkan (d) hanya karena (a) atau (b) berhasil.
+
+Cara analisis yang dianjurkan:
+1) Baca README, dokumen analisis, verifikasi, dan landing sebelum mengubah kode.
+2) Periksa git diff/status dan perubahan pengguna yang belum di-commit.
+3) Telusuri satu alur ujung ke ujung: UI > request > auth > pemilihan usaha >
+   data layer > persistensi > respons > state UI. Sebutkan file/fungsi nyata.
+4) Untuk tiap temuan, catat: bukti, dampak, cara reproduksi, prioritas,
+   perbaikan minimum, dan cara membuktikan perbaikannya.
+5) Tandai fakta yang sudah diuji, inferensi, dan hal yang belum diverifikasi.
+6) Uji perubahan pada data fixture terpisah. TERKASA_DATA_DIR tersedia untuk
+   direktori data lokal terisolasi; jangan mengarahkannya ke database asli.
+7) Gunakan browser untuk memeriksa alur nyata, bukan hanya source/screenshot.
+8) Pertahankan perilaku dan data yang sudah bekerja; jangan mengulang clone
+   atau rewrite besar tanpa alasan dari bukti.
+
+Temuan teknis yang masih perlu ditangani sebelum produksi publik:
+- JSON lokal menggunakan antrean satu proses, bukan transaksi lintas instance.
+- /tmp serverless tidak persisten; perlu database/media permanen.
+- Beberapa endpoint lama menerima businessId asing/basi dengan fallback ke
+  usaha sendiri. Ini tidak membuka data akun lain pada uji, tetapi salah ID
+  bisa memengaruhi usaha sendiri. Jalur stok baru menolak ID tidak cocok.
+- activeBusinessId pada mode file belum setara model per-user PostgreSQL.
+- Fallback rehidrasi auth/JWT serverless perlu audit khusus sebelum publik.
+- Audit otorisasi media, upload, akses per-user/per-usaha secara menyeluruh.
+- Review seed/demo credentials dan konfigurasi gateway sebelum publik.
+- PostgreSQL live, migrasi aman, restore backup, dan multi-instance belum diuji.
+- Integrasi resmi Instagram, masa berlaku token, dan alur koneksi perlu bukti.
+- Scheduler publikasi dan webhook balas komentar belum ada sebagai proses nyata.
+- APK TERKASA baru belum dibangun/dijalankan di perangkat/emulator.
+
+Jangan menyebut semua poin di atas bug yang sudah terbukti. Sebagian adalah
+batas desain atau sasaran audit; telusuri kode dan reproduksi sebelum klaim.
+
+==========================================================================
+12. RENCANA LANJUTAN YANG MASUK AKAL
+==========================================================================
+
+Tidak ada satu tugas baru yang otomatis diwajibkan oleh file ini. Ikuti fokus
+terbaru pengguna. Jika diminta melanjutkan kesiapan platform, urutannya:
+
+Prioritas A — melanjutkan dari keadaan yang ada:
+- Verifikasi source/branch/status dan jalankan lokal.
+- Tinjau landing bersama pengguna; poles berdasarkan temuan nyata.
+- Bila fokus integrasi: pengguna login ulang Instagram lama dan pairing WA,
+  lalu cek status read-only. Jangan mengirim posting/pesan tanpa instruksi itu.
+- Cek provider gambar/kuota seperlunya; pertahankan template yang sudah berfungsi.
+
+Prioritas B — kesiapan produksi:
+- Audit isolasi usaha, auth, dan media.
+- Pilih/koneksikan penyimpanan permanen yang benar-benar dimiliki pengguna.
+- Uji PostgreSQL dengan data terpisah, rancang migrasi aditif dan rollback.
+- Sesuaikan OAuth/webhook/domain dengan deployment yang benar.
+- Jika diminta, bangun dan uji APK setelah URL server terkonfigurasi.
+
+Prioritas C — fitur otomatisasi baru, hanya bila diminta:
+- Scheduler job yang benar-benar mengeksekusi publikasi, zona waktu, retry,
+  status job, idempotensi, serta persetujuan/tinjauan konten oleh pemilik.
+- Integrasi resmi komentar/Instagram sesuai kemampuan akun dan provider.
+- Laporan/pengalaman dashboard lanjutan berdasarkan kebutuhan peternak.
+
+Jangan membuat estimasi persentase "90% selesai" tanpa definisi ruang lingkup.
+Status yang akurat saat ini: fitur inti dan landing bekerja secara lokal;
+sebagian koneksi akun/provider dan pekerjaan produksi masih belum selesai.
+
+==========================================================================
+13. PROMPT SIAP PAKAI — LANJUTKAN PROYEK DI LAPTOP YANG SAMA
+==========================================================================
+
+SALIN DARI SINI:
+
+Anda melanjutkan proyek TERKASA yang SUDAH dikerjakan, bukan memulai ulang.
+Working directory yang benar adalah D:\projkwblampung\terkasa.
+Baca TERKASA_HANDOFF_AI.txt ini sampai selesai, README.md,
+docs/ANALISIS-REBRANDING.md, docs/VERIFIKASI.md, docs/LANDING-PAGE.md,
+docs/GEMINI-WEB-GATEWAY.md, dan integrations/gemini-web/README.md.
+Ikuti instruksi AGENTS.md yang diberikan pengguna; baca file itu bila ada
+serta panduan Next.js relevan dalam node_modules/next/dist/docs sebelum kode.
+
+Tujuan platform: inventori UMKM peternakan dan pemasaran digital berbantuan AI.
+Repo dasarnya Nexuszzz/projekwebumk; repo TERKASA adalah Nexuszzz/terkasa,
+branch main. Periksa status Git aktual. Jangan reset, clone ulang, menimpa
+env/data, atau membuang perubahan pengguna. Direktori induk merupakan proyek lain.
+
+Mulailah dengan git status/diff dan pembacaan source yang terkait. Jelaskan
+secara singkat apa yang sudah ada, bukti yang tersedia, dan celah yang nyata.
+Lalu kerjakan fokus berikut secara tuntas:
+[ISI FOKUS SAYA DI SINI, misalnya: poles dashboard agar konsisten dengan landing,
+atau pulihkan login Instagram akun lama, atau audit kesiapan produksi.]
+
+Pertahankan inventori, transaksi, laporan, data akun/usaha, dan pemisahan aset.
+Landing aktif ada di components/landing. Plan landing berarti susunan/alur,
+bukan harga langganan. Demo landing tidak boleh memodifikasi database asli.
+Gambar aset landing yang dibuat imagegen berbeda dari API gambar aplikasi.
+Jangan mengklaim Instagram terhubung, gambar AI pulih, atau publikasi otomatis
+berhasil tanpa respons aktual yang membuktikannya.
+
+Jangan tampilkan API key/password/cookie. Untuk login atau 2FA pengguna, siapkan
+formulir dan minta pengguna mengisinya langsung. Gunakan fixture terisolasi
+untuk pengujian yang menulis data. Setelah perubahan, jalankan pemeriksaan
+yang relevan, verifikasi alur UI, dan laporkan file, hasil uji, batas tersisa.
+Jangan menjalankan migrasi/deploy/posting/pesan eksternal hanya karena ada
+credential lama; tindakan tersebut harus sesuai tugas yang diberikan.
+Utamakan menyelesaikan pekerjaan yang sudah jelas tanpa konfirmasi berulang.
+
+AKHIR PROMPT LANJUTAN.
+
+==========================================================================
+14. PROMPT SIAP PAKAI — ANALISIS TEKNIS MENDALAM
+==========================================================================
+
+SALIN DARI SINI:
+
+Lakukan analisis teknis mendalam pada TERKASA di D:\projkwblampung\terkasa,
+dengan TERKASA_HANDOFF_AI.txt sebagai konteks awal. Jangan menganggap semua
+keterangan historis sebagai status layanan hari ini. Verifikasi kode dan bukti.
+
+Analisis: arsitektur dan alur data, auth dan isolasi usaha, konsistensi stok
+terhadap transaksi/verifikasi/pembatalan, file JSON versus PostgreSQL,
+otorisasi media/upload, prompt AI dan fakta katalog, provider gambar/fallback,
+Instagram/WhatsApp, persistensi produksi, dan alur landing menuju dashboard.
+
+Untuk tiap temuan, tulis prioritas, file/fungsi yang mendasari, pemicu nyata,
+dampak pada pengguna, bukti/reproduksi, perbaikan minimum, serta cara validasi.
+Pisahkan bug terbukti, risiko yang belum direproduksi, keterbatasan integrasi,
+dan fitur masa depan. Jangan memberi skor/angka keberhasilan yang dikarang.
+
+Jangan ubah source selama tahap audit kecuali diminta memperbaiki langsung.
+Jangan mengakses rahasia di luar kebutuhan analisis, mencetak env, membuat
+generasi berbayar berulang, atau mengirim posting/pesan sebagai tes diam-diam.
+Gunakan data fixture. Akhiri dengan urutan tindakan yang dapat dilaksanakan,
+dan jelaskan bagian yang sudah lokal-berfungsi versus belum siap produksi.
+
+AKHIR PROMPT ANALISIS.
+
+==========================================================================
+15. PROMPT SIAP PAKAI — POLISH UI TANPA MERUSAK FITUR
+==========================================================================
+
+SALIN DARI SINI:
+
+Poles tampilan TERKASA berdasarkan desain landing yang sudah ada, dengan
+identitas hijau hutan dan lime, Space Grotesk/Inter lokal, tata letak yang rapi,
+dan prioritas keterbacaan serta alur peternak. Gunakan source aktif dalam
+components/landing dan inventori dashboard yang sudah terhubung ke backend.
+
+Jangan mengganti aplikasi dengan mockup. Pertahankan kontrak API dan fungsi
+akun/usaha, transaksi, stok, laporan, konten. Jika membutuhkan raster baru,
+gunakan skill imagegen yang tersedia; simpan sumber dan turunan web terpisah,
+catat prompt, dan beri konteks bahwa gambar ilustrasi bukan foto usaha nyata.
+Pertahankan data demo sebagai demo; jangan membuat testimoni, metrik pelanggan,
+tarif, status koneksi, atau klaim kemampuan otomatisasi yang tidak benar.
+
+Sebelum coding, baca panduan Next.js versi terpasang. Setelah perubahan, cek
+desktop dan ponsel kecil, menu, keyboard/fokus, form, dialog, overflow, gambar,
+dan CTA. Jalankan typecheck/build sesuai kebutuhan. Tunjukkan screenshot hasil
+yang benar-benar dirender serta ringkas perubahan dan batas pengujiannya.
+
+AKHIR PROMPT UI.
+
+==========================================================================
+16. PETA BACA CEPAT DAN PENUTUP
+==========================================================================
+
+Dokumen utama (semua relatif ke D:\projkwblampung\terkasa):
+  README.md                        menjalankan dan kebutuhan layanan.
+  docs/ANALISIS-REBRANDING.md        analisis sumber/lokal dan batas arsitektur.
+  docs/VERIFIKASI.md                pengujian inventori dan pemulihan layanan.
+  docs/LANDING-PAGE.md              alur/desain/aset/pengujian landing terbaru.
+  assets/landing/prompts.json       prompt gambar persis.
+  .recovery/manifest.json           manifest pemulihan privat di laptop ini.
+
+Setelah AI berikutnya bekerja, perbarui bagian status, tanggal, hasil uji,
+perubahan file, serta hambatan dengan bukti baru. Jangan menghapus riwayat
+yang masih diperlukan untuk membedakan hasil lama dan hasil terbaru.
+
+Dokumen ini menyampaikan keadaan lokal yang diverifikasi sampai 19 November
+2026. Ia tidak menyertakan credential, source lengkap, atau otorisasi otomatis
+untuk memublikasikan aplikasi maupun konten akun pengguna.
+
+SELESAI.

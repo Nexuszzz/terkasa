@@ -92,7 +92,7 @@ export function AuthVisual() {
                   <Sparkles className="size-3.5 text-[#0a0d09]" aria-hidden="true" />
                 </span>
                 <span className="text-xs font-semibold text-[#f3f6ec]">
-                  UMKMan AI
+                  TERKASA AI
                 </span>
                 <motion.span
                   className="ml-auto size-2 rounded-full bg-[#d6ff4a]"
@@ -103,20 +103,20 @@ export function AuthVisual() {
 
               <div className="rounded-xl rounded-tl-sm bg-[#1b2316] p-3">
                 <p className="text-[11px] leading-relaxed text-[#9ba394]">
-                  Foto produk toko kamu sudah dianalisis. Ini caption siap posting:
+                  Foto produk peternakanmu sudah siap. Ini contoh caption promosi:
                 </p>
               </div>
 
               <div className="rounded-xl rounded-tl-sm border border-[#d6ff4a]/25 bg-[#151b12] p-3">
                 <p className="text-[11px] leading-relaxed text-[#f3f6ec]">
-                  {'"Produk unggulan toko — kualitas terbaik, harga bersahabat. '}
+                  {'"Stok ternak pilihan tersedia. Tanyakan detail dan jadwal kunjungan, '}
                   <span className="text-[#d6ff4a]">order sekarang!</span>
                   {'"'}
                 </p>
                 <div className="mt-2 flex items-center gap-1.5">
                   <Check className="size-3 text-[#d6ff4a]" aria-hidden="true" />
                   <span className="text-[10px] text-[#9ba394]">
-                    Selesai dalam 3 detik
+                    Contoh hasil promosi AI
                   </span>
                 </div>
               </div>

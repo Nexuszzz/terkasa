@@ -1,5 +1,5 @@
 import { envTrim, getSessionUser, unauthorized } from '@/lib/server/auth'
-import { updateProfile } from '@/lib/server/db'
+import { getSnapshotForUser, updateProfile } from '@/lib/server/db'
 import { ensureUserBusiness } from '@/lib/server/ensure-business'
 import {
   aiograpiBaseUrl,
@@ -7,6 +7,7 @@ import {
   aiograpiLogin,
   aiograpiLoginBySessionCookie,
   normalizeSessionId,
+  aiograpiVerifySession,
 } from '@/lib/server/aiograpi-client'
 import { sanitizeProfileForClient } from '@/lib/server/instagram'
 import { NextResponse } from 'next/server'
@@ -72,7 +73,9 @@ export async function POST(request: Request) {
     } else {
       if (!username || !body.password) {
         return NextResponse.json(
-          { error: 'Username + password IG, atau session cookie, wajib diisi.' },
+          {
+            error: 'Username + password IG, atau session cookie, wajib diisi.',
+          },
           { status: 400 },
         )
       }
@@ -84,7 +87,8 @@ export async function POST(request: Request) {
       sessionId = login.sessionId
     }
 
-    if (!username) username = snap.business.profile.instagram?.username || 'ig-session'
+    if (!username)
+      username = snap.business.profile.instagram?.username || 'ig-session'
 
     const profile = await updateProfile(
       user.id,
@@ -114,7 +118,8 @@ export async function POST(request: Request) {
     console.error('[instagram/private/login]', error)
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Login private API gagal.',
+        error:
+          error instanceof Error ? error.message : 'Login private API gagal.',
         hint: 'Jika ada 2FA, isi verificationCode. Atau ekspor cookie sessionid dari browser.',
       },
       { status: 400 },
@@ -122,14 +127,42 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const user = await getSessionUser()
+  if (!user) return unauthorized()
   const healthy = await aiograpiHealth()
   const baseUrl = aiograpiBaseUrl()
+  const id =
+    new URL(request.url).searchParams.get('businessId') ||
+    request.headers.get('x-business-id')
+  const snapshot = await getSnapshotForUser(user.id, id)
+  const session =
+    snapshot.ok && snapshot.business.profile.instagram?.privateMode !== false
+      ? snapshot.business.profile.instagram?.privateSessionId
+      : undefined
+  const checked =
+    session && healthy ? await aiograpiVerifySession(session) : null
   return NextResponse.json({
     gatewayHealthy: healthy,
     configured: Boolean(envTrim('AIOGRAPI_BASE_URL')),
     baseUrl,
     docsUrl: `${baseUrl}/docs`,
+    sessionSaved: Boolean(session),
+    sessionValid: checked?.ok === true,
+    sessionStatus: !session
+      ? 'missing'
+      : !healthy
+        ? 'gateway_offline'
+        : checked?.ok
+          ? 'valid'
+          : 'reconnect_required',
+    sessionMessage: !session
+      ? 'Hubungkan akun Instagram usaha ini.'
+      : !healthy
+        ? 'Gateway Instagram belum aktif.'
+        : checked?.ok
+          ? 'Sesi Instagram berhasil diverifikasi.'
+          : 'Sesi Instagram perlu dihubungkan ulang. Login kembali melalui formulir di bawah.',
     disclaimer:
       'Private API DEMO ONLY. Meta melarang minta password IG di app pihak ketiga. Risiko ban tinggi.',
   })

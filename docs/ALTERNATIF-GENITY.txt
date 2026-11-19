@@ -1,0 +1,149 @@
+ALTERNATIF GENITY DAN RANCANGAN LAYANAN GAMBAR TERKASA
+Tanggal riset: 19 November 2026
+
+PEMBARUAN PILIHAN: setelah riset awal di bawah, pengguna meminta Gemini Web
+menjadi API. Implementasi aktif kini memakai library HanaokaYuzu/Gemini-API
+melalui gateway lokal sendiri. Sesi sudah diverifikasi, satu caption dengan
+foto dan satu JPEG generatif berhasil diuji nyata pada 19 November 2026.
+Panduan aktif: docs/GEMINI-WEB-GATEWAY.md dan integrations/gemini-web/README.md.
+Bagian provider resmi di bawah merupakan riset alternatif, bukan konfigurasi
+aktif saat ini. Genity lama tidak dinyatakan telah pulih.
+
+1. KEADAAN SAAT INI
+
+Kode TERKASA menggunakan API GenityBoost pada api.genityboost.site, bukan
+genity.id. Jangan menganggap keduanya mempunyai backend/kontrak API yang sama
+tanpa dokumentasi resmi. Pada pemeriksaan sebelumnya origin API lama timeout
+dan satu job generate menerima HTTP 522. Saat riset ini, genity.id tidak dapat
+diambil melalui alat web dan mendapat HTTP 521. Ini bukti gangguan akses dari
+lingkungan pemeriksaan, bukan diagnosis menyeluruh server Genity.
+
+Caption memakai Gemini secara terpisah. Poster template lokal telah bekerja.
+API gambar belum dipindahkan hanya karena dokumen riset ini dibuat.
+
+2. PILIHAN PROVIDER RESMI
+
+A. Gemini / Nano Banana langsung dari Google
+- Mendukung pembuatan dan pengeditan gambar lewat API.
+- Model gambar berbeda dari model Gemini teks untuk caption.
+- Dapat memakai project/key Google yang sudah ada bila akses dan kuota sesuai.
+- Gemini 3.1 Flash Lite Image: harga output 1K yang ditampilkan dokumentasi
+  saat riset USD 0.0336/gambar, ditambah penggunaan input yang relevan.
+- Gemini Nano Banana 2.1 juga tersedia; pemilihan model harus mengikuti harga,
+  kemampuan referensi, dan akses project yang benar-benar aktif.
+- Pada project pengguna, uji model gambar terdahulu mendapat 429. Adapter
+  langsung tidak akan menghapus batas kuota atau mengaktifkan billing.
+- Google bukan jaminan uptime 100%; teks project ini juga sempat 503.
+
+Sumber primer:
+https://aistudio.google.com/docs/image-generation
+https://aistudio.google.com/docs/pricing#gemini-3.1-flash-lite-image
+
+B. FLUX API langsung dari Black Forest Labs
+- Provider alternatif terpisah dari Google/Genity.
+- Membutuhkan akun, API key, dan kredit sendiri.
+- Harga yang ditampilkan untuk FLUX 3 Image Klein 1K saat riset:
+  USD 0.009/gambar. FLUX 3 Image 1K: USD 0.048/gambar.
+- Periksa harga/model aktif sebelum memakai; angka di atas bukan janji tagihan
+  final dan belum termasuk pajak yang mungkin berlaku.
+- API menggunakan submit job lalu polling hasil. URL hasil sementara harus
+  diunduh ke penyimpanan TERKASA, bukan dijadikan arsip permanen.
+- Belum ada credential BFL yang dikonfigurasi dan belum ada uji gambar nyata
+  BFL pada proyek ini. Kualitas belum dibandingkan dengan foto uji TERKASA.
+
+Sumber primer:
+https://bfl.ai/pricing
+https://docs.bfl.ai/quick_start/generating_images
+
+3. MODEL LOKAL / SERVER SENDIRI
+
+Hardware laptop dibaca lewat nvidia-smi:
+  NVIDIA GeForce RTX 4060 Laptop GPU, 8188 MiB VRAM.
+Angka AdapterRAM dari Windows WMI hanya melaporkan 4 GB pada GPU ini, sehingga
+gunakan pembacaan nvidia-smi untuk perkiraan VRAM yang lebih sesuai.
+
+ComfyUI menyediakan API /prompt, /history, /view, /system_stats, serta antrean.
+TERKASA dapat menjadi client dari server ComfyUI yang menjalankan model lokal.
+
+Catatan kapasitas:
+- Dokumentasi FLUX.2 Klein 4B yang diperiksa menyebut pengukuran sekitar
+  8.4 GB VRAM untuk distilled dan 9.2 GB untuk base pada RTX 5090.
+- VRAM laptop 8 GB berada di bawah angka contoh tersebut. Mungkin memerlukan
+  kuantisasi, pemindahan sebagian proses ke RAM/CPU, resolusi lebih kecil,
+  atau model yang lebih ringan; hal ini HARUS diuji.
+- Jangan menjanjikan waktu 1 detik seperti benchmark GPU 5090 pada laptop ini.
+- FLUX.1 Schnell tersedia dengan lisensi Apache 2.0, tetapi kebutuhan aktual
+  RAM/VRAM dan kualitasnya tetap bergantung workflow/kuantisasi yang dipakai.
+- Tidak ada biaya API per request untuk inferensi lokal milik sendiri, tetapi
+  tetap ada biaya listrik, waktu, disk, dan hardware. Ini bukan cloud gratis.
+- Laptop/server harus menyala selama layanan dipakai. Deployment online tidak
+  bisa mengakses 127.0.0.1 laptop tanpa rancangan koneksi yang sesuai.
+- Instalasi/download model belum dilakukan dalam tahap riset ini.
+
+Sumber primer:
+https://docs.comfy.org/tutorials/flux/flux-2-klein
+https://docs.comfy.org/development/comfyui-server/comms_routes
+https://replicate.com/black-forest-labs/flux-schnell
+
+4. BISAKAH MEMBUAT LAYANAN SEPERTI GENITY?
+
+Bisa membuat produk/API dengan fungsi sejenis, tetapi tidak mengetahui atau
+menyalin sistem internal Genity. Dua tingkat yang berbeda:
+
+Tingkat 1: layanan penghubung milik TERKASA
+  TERKASA > API terautentikasi > adapter provider > penyimpanan hasil > konten.
+Model pembuat gambar disediakan Google/BFL atau provider pilihan lainnya.
+
+Tingkat 2: layanan inferensi milik sendiri
+  TERKASA > API terautentikasi > antrean GPU > ComfyUI/model lokal > hasil.
+Model dijalankan di GPU sendiri, bukan sekadar proxy provider cloud.
+
+Keduanya tidak berarti melatih model baru dari nol. Melatih model besar adalah
+pekerjaan lain dengan kebutuhan data, komputasi, waktu, dan biaya berbeda.
+
+5. DESAIN YANG DISARANKAN UNTUK TERKASA
+
+- Gunakan endpoint aplikasi sendiri sebagai pintu masuk sehingga UI tidak
+  bergantung kontrak Genity. Route /api/ai/poster yang ada dapat dipertahankan.
+- Pemilihan provider eksplisit: Google, BFL, atau lokal. Jangan mengirim prompt
+  yang sama ke banyak provider sekaligus tanpa kontrol biaya.
+- Input: subjek, instruksi, rasio, foto referensi, usaha pemilik.
+- Status pekerjaan: queued, running, succeeded, failed; kaitkan user/usaha.
+- Simpan ID job provider, status, batas waktu, dan hasil secara persisten.
+  Jangan mengandalkan Map dalam memori jika serverless/multi-instance.
+- Jangan mengulang submit generasi setelah timeout ambigu; cek job yang sudah
+  dibuat agar tidak membuat tagihan/gambar ganda.
+- Hasil diunduh, divalidasi sebagai gambar, lalu disimpan melalui media-store
+  yang sudah ada. Jangan membuka riwayat/gambar usaha lain.
+- Jika layanan gagal/kuota habis, tawarkan template foto yang sudah berfungsi.
+- Bedakan hasil gambar generatif dan template melalui metadata serta UI.
+- Untuk materi penjualan hewan nyata, gunakan foto ternak asli sebagai sumber
+  identitas; gambar AI dapat dipakai untuk ilustrasi dengan label yang jelas.
+- Teks harga, stok, nama usaha, dan CTA sebaiknya ditata deterministik agar
+  tidak salah eja atau mengarang fakta ketika dirender model gambar.
+- Untuk Instagram resmi, siapkan turunan JPEG dan URL media yang dapat diambil
+  Meta. Menambahkan API gambar tidak otomatis memperbaiki seluruh alur posting.
+
+Fitur yang sudah menjadi fondasi di proyek:
+  app/api/ai/poster/route.ts
+  lib/server/genty.ts
+  lib/server/poster-template.ts
+  lib/server/media-store.ts
+  components/dashboard/generate-content-modal.tsx
+
+6. CARA MEMILIH
+
+Ingin cepat online:
+  Adapter API resmi + key/kredit aktif + template cadangan.
+
+Ingin mengurangi ketergantungan cloud:
+  Uji ComfyUI lokal terlebih dahulu dengan model/workflow yang muat di GPU.
+  Jangan menjanjikan produksi 24 jam dari laptop yang belum diuji.
+
+Ingin keduanya:
+  Satu API TERKASA dengan pilihan backend cloud/lokal, bukan sistem kredit dan
+  reseller publik yang besar pada tahap awal.
+
+Harga, akses model, dan lisensi dapat berubah. Tautan di atas adalah sumber
+primer yang diperiksa pada tanggal riset. Tidak ada pembelian kredit,
+langganan, generasi berbayar, instalasi model, atau deployment pada tahap ini.

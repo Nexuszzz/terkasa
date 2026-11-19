@@ -310,7 +310,7 @@ export function buildFinancialReport(input: FinancialReportInput): FinancialRepo
       `Modal/HPP = ESTIMASI: qty terjual × ${Math.round(costRatio * 100)}% harga jual (bukan HPP akuntansi resmi).`,
       'Laba kotor = Omzet − Modal/HPP (belum ongkir, iklan, sewa, gaji).',
       'Modal stok = stok gudang × estimasi modal per unit.',
-      'Sumber: database live usaha Anda di UMKMan saja (multi-tenant).',
+      'Sumber: database live usaha Anda di TERKASA saja (multi-tenant).',
     ],
   }
 }
@@ -322,7 +322,7 @@ export function formatRp(n: number) {
 /** System prompt khusus laporan — tidak memuat katalog seed / merek lain. */
 export function getReportSystemInstruction(report: FinancialReport): string {
   const allowedProducts = report.byProduct.map((p) => p.product).filter(Boolean)
-  return `Kamu analis laporan keuangan untuk SATU usaha multi-tenant di platform UMKMan.
+  return `Kamu analis laporan keuangan untuk SATU usaha multi-tenant di platform TERKASA.
 
 ## Usaha yang dilayani (SATU-SATUNYA)
 - Brand: ${report.business.brand}

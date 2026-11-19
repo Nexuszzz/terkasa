@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       sessionId,
       imageBuffer: file.buffer,
       contentType: 'image/jpeg',
-      filename: 'umkman-ig.jpg',
+      filename: 'terkasa-ig.jpg',
       caption,
     })
   } catch (e) {

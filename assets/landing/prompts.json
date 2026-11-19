@@ -1,0 +1,17 @@
+{
+  "mode": "Built-in image_gen",
+  "date": "2026-11-19",
+  "assets": [
+    {
+      "source": "assets/landing/source/cattle-pasture-v1.png",
+      "web": "public/assets/landing/generated/cattle-pasture-v1.webp",
+      "prompt": "Use case: photorealistic-natural\nAsset type: editorial hero photograph for TERKASA, an Indonesian livestock inventory and digital marketing platform.\nPrimary request: Create one premium, photorealistic agricultural landscape photograph, landscape 3:2 composition. A handsome brown Limousin-type beef cow stands naturally in the right foreground, its entire body and four legs anatomically correct and clearly visible. Two smaller cattle graze in the middle distance. Lush green pasture in the Indonesian countryside with low rolling hills, subtle tropical trees and a quiet small timber farm shelter far in the background. Dewy natural grasses, real fur texture, calm and well cared for animals.\nComposition/framing: camera at cattle eye level, wide editorial lens, foreground animal occupies right-central area, upper third opens into softly lit hills and pale sky; clean left margin and lower margin allow responsive cropping. This is a photograph asset, not a website mockup.\nLighting/mood: early morning warm side light, subtle mist in distant hills, rich natural forest greens, warm brown hide, refined and credible agricultural magazine photography. Natural color grading, no neon saturation.\nConstraints: no people, no text, no letters, no logos, no watermarks, no UI, no infographic, no borders, no collage, no excessive lens blur, no distorted anatomy, no duplicated legs. Fully opaque image."
+    },
+    {
+      "source": "assets/landing/source/sheep-pasture-v1.png",
+      "web": "public/assets/landing/generated/sheep-pasture-v1.webp",
+      "prompt": "Use case: photorealistic-natural\nAsset type: secondary photographic asset for TERKASA livestock website and illustrative marketing poster preview.\nPrimary request: Create a premium editorial photograph of three healthy-looking white sheep on a lush green Indonesian smallholder pasture, natural tropical countryside, softly blurred simple wooden fence and low hills behind. One expressive sheep nearest the camera in three-quarter view, whole body with anatomically correct legs visible, two sheep a little behind it, plenty of lush grass surrounding them. Portrait-friendly square composition.\nStyle/medium: photorealistic agricultural magazine photography, fine real wool texture, honest everyday rural detail, calm natural setting, no unrealistically perfect surfaces.\nLighting/mood: soft warm early morning daylight, rich deep greens and natural white wool, restrained warm color grading, gentle depth of field.\nConstraints: no text, letters, logos, UI, watermarks, borders or collage. No people, no accessories, no distorted anatomy or duplicate limbs. Fully opaque square image."
+    }
+  ],
+  "note": "Illustrative AI imagery, not documentation of a real farm. Poster preview uses demo business information."
+}

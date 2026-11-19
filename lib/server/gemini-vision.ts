@@ -1,3 +1,4 @@
+import { fetchGemini, geminiRuntimeConfig, geminiTimeout } from '@/lib/server/gemini-client'
 /**
  * Gemini vision helpers — describe product packaging so Genity poster
  * matches the real photo (Genity cannot see localhost / data-URL images).
@@ -6,14 +7,11 @@
  * when the client uploaded a different product.
  */
 
-import { envTrim } from '@/lib/server/auth'
 import type { ResolvedImage } from '@/lib/server/image-source'
 
 function getGeminiConfig() {
-  const apiKey = envTrim('GEMINI_API_KEY')
-  const model = envTrim('GEMINI_MODEL') || 'gemini-2.5-flash'
-  if (!apiKey || !apiKey.startsWith('AIza')) return null
-  return { apiKey, model }
+  const config = geminiRuntimeConfig()
+  return config.configured ? config : null
 }
 
 /**
@@ -43,7 +41,7 @@ export async function describeProductPackaging(input: {
 
   const antiBias = input.outsideStoreCatalog || input.photoIsSourceOfTruth
     ? [
-        'The uploaded photo is the ONLY source of truth for packaging.',
+        'The uploaded photo is the ONLY source of truth for the actual subject.',
         'Describe ONLY what is visible in the image.',
         input.storeBrandHint
           ? `Ignore store brand "${input.storeBrandHint}" unless that exact brand text is visible on the pack.`
@@ -57,13 +55,13 @@ export async function describeProductPackaging(input: {
 
   const instruction = [
     'You are a product-photography art director.',
-    'Describe ONLY what you see in this product photo for an AI image generator that must recreate the SAME packaging.',
+    'Describe ONLY what you see in this photo for an AI image generator that must preserve the SAME subject. For livestock, describe the visible animal, its colors, markings, posture and surroundings. Do not describe a bottle or invent packaging for an animal.',
     'Write 5-8 short English sentences covering:',
-    '1) Container type & shape (bottle/jar/sachet/box/pouch, proportions, cap/lid style)',
-    '2) Exact brand label text if readable, logo placement, main colors of label & bottle',
-    '3) Material look (plastic translucent/opaque, glass, etc.) and fill/liquid color if visible',
-    '4) Any distinctive graphics, icons, or claim badges on the pack',
-    '5) What kind of product it appears to be (snack, drink, cleaner, fashion, etc.) based on the photo only',
+    '1) Actual subject type, shape and proportions; animal species when visually identifiable',
+    '2) Main colors, distinctive markings and visible details; readable labels only if any',
+    '3) Natural setting, posture, lighting and materials that are actually visible',
+    '4) Packaging details ONLY if the subject really is a packaged product',
+    '5) Do not infer precise breed, age, weight, health, certificates or prices from appearance',
     'Critical rules:',
     product && product !== 'the product shown in the uploaded photo' && product !== 'featured product'
       ? `User named this product "${product}"${brand ? ` (brand hint "${brand}" only if label matches)` : ''}.`
@@ -77,10 +75,8 @@ export async function describeProductPackaging(input: {
     .filter(Boolean)
     .join(' ')
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cfg.model)}:generateContent?key=${encodeURIComponent(cfg.apiKey)}`
-
   try {
-    const upstream = await fetch(endpoint, {
+    const upstream = await fetchGemini(cfg.model, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -103,7 +99,7 @@ export async function describeProductPackaging(input: {
           maxOutputTokens: 512,
         },
       }),
-      signal: AbortSignal.timeout(25_000),
+      signal: AbortSignal.timeout(geminiTimeout()),
     })
 
     const payload = await upstream.json()

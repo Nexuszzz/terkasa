@@ -4,6 +4,8 @@
  */
 
 import { DEFAULT_AI_PREFERENCES, normalizeAiPreferences } from '@/lib/ai-style'
+import { normalizePlatformName, PLATFORM_NAME, PLATFORM_TAGLINE } from '@/lib/brand'
+import { assertLivestockPrice, assertStock, assertStockDelta, normalizeLivestock } from '@/lib/livestock'
 import { normalizeLocale, normalizeNotifications } from '@/lib/preferences'
 import { getPrisma } from '@/lib/server/prisma'
 import type {
@@ -19,8 +21,8 @@ import type {
 import type { Prisma } from '@prisma/client'
 
 const DEFAULT_APP = {
-  appName: 'UMKMan',
-  tagline: 'UMKM Naik Kelas, Ditenagai Kecerdasan Buatan',
+  appName: PLATFORM_NAME,
+  tagline: PLATFORM_TAGLINE,
   currency: 'IDR',
   timezone: 'WIB (GMT+7)',
   country: 'Indonesia',
@@ -43,6 +45,7 @@ function normalizeProfile(profile: BusinessProfile): BusinessProfile {
   const { plan: _p, ...rest } = profile as BusinessProfile & { plan?: unknown }
   return {
     ...rest,
+    appName: normalizePlatformName(rest.appName),
     ai: normalizeAiPreferences(rest.ai),
     notifications: normalizeNotifications(rest.notifications),
     locale: normalizeLocale(rest.locale),
@@ -68,6 +71,7 @@ function mapProduct(p: {
   lowStockAt: number
   sku: string
   keywords: unknown
+  livestock?: unknown
 }): CatalogProduct {
   return {
     id: p.id,
@@ -83,6 +87,7 @@ function mapProduct(p: {
     lowStockAt: p.lowStockAt,
     sku: p.sku,
     keywords: Array.isArray(p.keywords) ? (p.keywords as string[]) : [],
+    livestock: normalizeLivestock(p.livestock),
   }
 }
 
@@ -340,7 +345,7 @@ export async function createBusiness(
       ownerRow = await prisma.user.create({
         data: {
           id: userId,
-          email: (input.email || `${userId}@umkman.local`).trim().toLowerCase(),
+          email: (input.email || `${userId}@terkasa.local`).trim().toLowerCase(),
           name: owner || 'Pemilik',
           passwordHash: null,
           sessionVersion: 0,
@@ -368,10 +373,10 @@ export async function createBusiness(
     city: (input.city || '').trim() || 'Indonesia',
     region: (input.region || '').trim() || '',
     country: DEFAULT_APP.country,
-    email: (input.email || '').trim() || `${slug}@umkman.local`,
+    email: (input.email || '').trim() || `${slug}@terkasa.local`,
     phone: (input.phone || '').trim() || '',
     address: (input.address || input.city || '').trim() || '',
-    category: (input.category || '').trim() || 'UMKM',
+    category: (input.category || '').trim() || 'Peternakan',
     platforms: [...DEFAULT_APP.platforms],
     currency: DEFAULT_APP.currency,
     timezone: DEFAULT_APP.timezone,
@@ -461,6 +466,12 @@ export async function updateCatalogProduct(
   const biz = await requireOwned(userId, businessId)
   const existing = biz.products.find((p) => p.id === id)
   if (!existing) throw new Error(`Produk ${id} tidak ditemukan di usaha ini.`)
+  const livestock = patch.livestock !== undefined ? normalizeLivestock(patch.livestock) : normalizeLivestock(existing.livestock)
+  if (livestock) {
+    if (patch.unitPrice !== undefined) assertLivestockPrice(patch.unitPrice)
+    if (patch.stock !== undefined) assertStock(patch.stock)
+    if (patch.lowStockAt !== undefined) assertStock(patch.lowStockAt)
+  }
   const updated = await prisma.product.update({
     where: { id },
     data: {
@@ -477,6 +488,7 @@ export async function updateCatalogProduct(
       sku: patch.sku ?? existing.sku,
       keywords: (patch.keywords ??
         (Array.isArray(existing.keywords) ? existing.keywords : [])) as Prisma.InputJsonValue,
+      ...(livestock ? { livestock: livestock as unknown as Prisma.InputJsonValue } : {}),
     },
   })
   return mapProduct(updated)
@@ -501,6 +513,12 @@ export async function createCatalogProduct(
         .split(/[^a-z0-9]+/i)
         .filter((t) => t.length > 1)
         .slice(0, 12)
+  const livestock = normalizeLivestock(input.livestock)
+  if (livestock) {
+    assertLivestockPrice(input.unitPrice)
+    assertStock(input.stock ?? 0)
+    assertStock(input.lowStockAt ?? 2)
+  }
   const product = await prisma.product.create({
     data: {
       id: `prod-${Date.now().toString(36)}`,
@@ -517,9 +535,32 @@ export async function createCatalogProduct(
       lowStockAt: Math.max(0, Math.round(input.lowStockAt ?? 10)),
       sku: (input.sku || `SKU-${Date.now().toString(36).toUpperCase()}`).trim(),
       keywords: keywords as Prisma.InputJsonValue,
+      ...(livestock ? { livestock: livestock as unknown as Prisma.InputJsonValue } : {}),
     },
   })
   return mapProduct(product)
+}
+
+export async function adjustCatalogStock(userId: string, id: string, delta: number, businessId?: string | null) {
+  assertStockDelta(delta)
+  const prisma = getPrisma()
+  const biz = await requireOwned(userId, businessId)
+  if (businessId && biz.id !== businessId) throw new Error('Usaha tidak cocok dengan akun Anda.')
+  return prisma.$transaction(async (tx) => {
+    const current = await tx.product.findFirst({ where: { id, businessId: biz.id } })
+    if (!current) throw new Error('Produk tidak ditemukan di usaha ini.')
+    if (current.stock + delta < 0) throw new Error(`Stok tidak cukup. Tersedia ${current.stock}.`)
+    if (current.livestock) assertStock(current.stock + delta)
+    const updated = await tx.product.updateMany({
+      where: {
+        id, businessId: biz.id,
+        ...(delta < 0 ? { stock: { gte: -delta } } : current.livestock ? { stock: { lte: 1_000_000 - delta } } : {}),
+      },
+      data: { stock: { increment: delta } },
+    })
+    if (updated.count !== 1) throw new Error('Stok berubah. Muat ulang dan coba lagi.')
+    return mapProduct(await tx.product.findUniqueOrThrow({ where: { id } }))
+  })
 }
 
 export function findProduct(
@@ -617,6 +658,9 @@ export async function createTransaction(
     catalog = [...catalog, product]
   }
 
+  if (product.livestock && (!Number.isSafeInteger(Number(input.qty)) || Number(input.qty) < 1)) {
+    throw new Error('Jumlah penjualan ternak harus bilangan bulat minimal 1 ekor.')
+  }
   if (product.stock < qty) {
     throw new Error(
       `Stok ${product.shortName} tidak cukup. Tersedia ${product.stock}, diminta ${qty}. Tambah stok di Katalog dulu.`,

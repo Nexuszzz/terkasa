@@ -218,7 +218,7 @@ export async function loginWithQr(deviceId: string): Promise<GowaLoginQrResult> 
   if (link.startsWith('/')) link = `${baseUrl()}${link}`
 
   // GOWA pakai basic auth — browser tidak bisa load QR image langsung.
-  // Proxy jadi data URL agar UI UMKMan bisa menampilkan QR tanpa credentials.
+  // Proxy jadi data URL agar UI TERKASA bisa menampilkan QR tanpa credentials.
   try {
     const imgRes = await fetch(link, {
       headers: basicAuthHeader(),

@@ -80,3 +80,9 @@ ios/App/Pods/
 ios/App/build/
 .capacitor/
 
+# Local recovery, verification artifacts and generated mobile configuration
+.recovery/
+.verification/
+mobile/dist/
+mobile/www/server-config.js
+

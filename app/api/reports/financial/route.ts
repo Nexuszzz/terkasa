@@ -1,3 +1,4 @@
+import { fetchGemini, geminiRuntimeConfig, geminiTimeout } from '@/lib/server/gemini-client'
 /**
  * Laporan keuangan omzet + modal + laba (JSON + narasi AI opsional).
  * Multi-tenant: HANYA data usaha milik user + businessId aktif.
@@ -9,7 +10,7 @@ import {
   sanitizeReportNarrative,
   type ReportPeriodKey,
 } from '@/lib/financial-report'
-import { envTrim, getSessionUser, unauthorized } from '@/lib/server/auth'
+import { getSessionUser, unauthorized } from '@/lib/server/auth'
 import { getSnapshot } from '@/lib/server/db'
 import { NextResponse } from 'next/server'
 
@@ -22,17 +23,16 @@ function jsonResponse(payload: unknown, status = 200) {
 }
 
 async function generateNarrative(report: ReturnType<typeof buildFinancialReport>) {
-  const key = envTrim('GEMINI_API_KEY')
-  if (!key || !key.startsWith('AIza')) {
+  const config = geminiRuntimeConfig()
+  if (!config.configured) {
     return sanitizeReportNarrative(buildFallbackNarrative(report), report)
   }
 
-  const model = envTrim('GEMINI_MODEL') || 'gemini-2.5-flash'
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`
+  const model = config.model
 
   try {
     // System prompt HANYA konteks usaha di report — jangan inject katalog seed/global.
-    const upstream = await fetch(endpoint, {
+    const upstream = await fetchGemini(model, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -45,7 +45,7 @@ async function generateNarrative(report: ReturnType<typeof buildFinancialReport>
           maxOutputTokens: 1_200,
         },
       }),
-      signal: AbortSignal.timeout(25_000),
+      signal: AbortSignal.timeout(geminiTimeout()),
     })
     const payload = await upstream.json()
     if (!upstream.ok) {

@@ -1,7 +1,9 @@
 'use client'
 
+import { BrandMark } from '@/components/brand-mark'
+
 import { AnimatePresence, motion } from 'framer-motion'
-import { Eye, EyeOff, Zap } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useId, useMemo, useState, type ReactNode } from 'react'
 
@@ -122,7 +124,7 @@ const ERROR_MAP: Record<string, string> = {
   google_token:
     'Gagal menukar kode Google. Cek Client ID/Secret dan Authorized redirect URI di Google Cloud Console.',
   google_redirect:
-    'Redirect URI tidak cocok. Di Google Console wajib ada: https://umkman.vercel.app/api/auth/google/callback',
+    'Alamat callback Google belum sesuai. Hubungi pengelola TERKASA untuk mengaktifkan login Google.',
   google_client:
     'Client ID/Secret Google tidak cocok. Pastikan secret di Vercel sama dengan di Google Console.',
   google_denied: 'Login Google dibatalkan, atau email kamu belum ditambahkan sebagai Test user.',
@@ -212,9 +214,9 @@ export function AuthForm() {
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
         <span className="flex size-9 items-center justify-center rounded-xl bg-accent">
-          <Zap className="size-4.5 text-accent-foreground" aria-hidden="true" />
+          <BrandMark className="size-4.5 text-accent-foreground" aria-hidden="true" />
         </span>
-        <span className="font-display text-xl font-bold tracking-tight">UMKMan</span>
+        <span className="font-display text-xl font-bold tracking-tight">TERKASA</span>
       </motion.a>
 
       <AnimatePresence mode="wait">
@@ -224,7 +226,7 @@ export function AuthForm() {
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
             {mode === 'login'
-              ? 'Masuk ke akunmu — data usaha terisolasi per akun.'
+              ? 'Kelola inventori dan pemasaran peternakanmu.'
               : 'Daftar akun baru. Setiap akun terisolasi — data client lain tidak tercampur.'}
           </p>
 
@@ -259,13 +261,13 @@ export function AuthForm() {
                   label="Nama Usaha"
                   value={business}
                   onChange={setBusiness}
-                  placeholder="Nama brand / usaha kamu"
+                  placeholder="Mis. Ternak Makmur"
                 />
                 <Field
                   label="Nama Lengkap"
                   value={name}
                   onChange={setName}
-                  placeholder="Nama pemilik usaha"
+                  placeholder="Nama pemilik peternakan"
                   autoComplete="name"
                 />
               </>
@@ -307,7 +309,7 @@ export function AuthForm() {
                   onChange={(e) => setAgreed(e.target.checked)}
                   className="size-4 rounded border-input accent-[var(--accent)]"
                 />
-                <span>Saya setuju membuat akun UMKMan untuk usaha saya sendiri.</span>
+                <span>Saya setuju membuat akun TERKASA untuk usaha saya sendiri.</span>
               </label>
             )}
 

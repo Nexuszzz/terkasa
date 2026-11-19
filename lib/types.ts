@@ -7,6 +7,13 @@ export type Platform = 'Instagram' | 'Tokopedia' | 'Lazada'
 export type ContentStatus = 'Draft' | 'Terposting'
 export type TxStatus = 'Tersimpan' | 'Perlu Verifikasi'
 
+export type LivestockSpecies = 'sapi' | 'domba' | 'kambing' | 'ayam' | 'bebek' | 'kerbau' | 'lainnya'
+export type LivestockDetails = {
+  species: LivestockSpecies
+  breed: string
+  pen: string
+}
+
 export type CatalogProduct = {
   id: string
   name: string
@@ -21,6 +28,8 @@ export type CatalogProduct = {
   lowStockAt: number
   sku: string
   keywords: string[]
+  /** Ternak dihitung dalam ekor; stok tetap satu sumber dengan katalog/transaksi. */
+  livestock?: LivestockDetails
 }
 
 export type NotificationPreferences = {
@@ -45,7 +54,7 @@ export type BusinessProfile = {
   platforms: string[]
   currency: string
   timezone: string
-  /** Nama platform software (UMKMan) — global, bisa di-override */
+  /** Nama platform software (TERKASA) — global, bisa di-override */
   appName: string
   tagline: string
   /** Logo usaha (path /uploads/... atau /products/...) */

@@ -39,6 +39,17 @@ export function gentyConfigured() {
   return Boolean(envTrim('GENTY_API_KEY') || envTrim('GENITY_API_KEY'))
 }
 
+/** Connectivity check does not create a paid generation job. */
+export async function gentyReachable(): Promise<boolean> {
+  if (!gentyConfigured()) return false
+  const { baseUrl } = getConfig()
+  try {
+    const response = await fetch(baseUrl, { method: 'GET', redirect: 'manual', signal: AbortSignal.timeout(3_000) })
+    await response.body?.cancel()
+    return response.status < 500
+  } catch { return false }
+}
+
 async function gentyFetch(path: string, init?: RequestInit) {
   const { apiKey, baseUrl } = getConfig()
   const response = await fetch(`${baseUrl}${path}`, {
@@ -137,12 +148,13 @@ export function buildPosterPrompt(input: {
   const styleLook = getPosterStyleKeywords(style)
   const platform = input.platform || 'Instagram'
   const category = input.category?.trim()
+  const livestock = /peternak|ternak|sapi|domba|kambing|kerbau|ayam|bebek|unggas|cattle|sheep|goat/i.test(`${category || ''} ${product}`)
   const extra = input.description ? ` Product facts: ${input.description.slice(0, 200)}.` : ''
   const custom = input.userPrompt?.trim()
     ? ` User creative direction: ${input.userPrompt.trim().slice(0, 480)}.`
     : ''
   const visual = input.visualDescription?.trim()
-    ? ` CRITICAL — recreate THIS exact packaging from the real product photo: ${input.visualDescription.trim().slice(0, 460)}.`
+    ? ` CRITICAL — match the actual subject in the reference photo: ${input.visualDescription.trim().slice(0, 460)}.`
     : ''
   const categoryLine =
     category && !input.outsideStoreCatalog
@@ -151,12 +163,14 @@ export function buildPosterPrompt(input: {
 
   const brandLine = brand
     ? ` Brand context (only if it matches the product): "${brand}".`
-    : ' Do not invent or paste an unrelated store brand onto the packaging.'
+    : ' Do not invent an unrelated business brand.'
 
   // Photo / custom product first — never silently become another SKU (e.g. NUSACID)
-  const fidelity = input.hasProductPhoto || visual
-    ? ' Match the real uploaded product packaging (shape, colors, label, brand text on pack). Do not invent a different product or bottle.'
-    : ' Design premium packaging that matches the product name and user direction — not a random stock bottle.'
+  const fidelity = livestock
+    ? ' This is livestock marketing. Feature the named animal in a clean farm setting. Match visible animal features and markings when a real photo is provided. Do not invent breed certifications, body weight, health guarantees, prices, stock, bottles, containers or packaging.'
+    : input.hasProductPhoto || visual
+      ? ' Match the real uploaded product appearance, colors and readable label. Do not substitute an unrelated product.'
+      : ' Follow the actual product name and creative direction; do not substitute a generic bottle.'
 
   const antiLeak =
     input.outsideStoreCatalog || input.hasProductPhoto
@@ -179,14 +193,14 @@ export function buildPosterPrompt(input: {
   ].join(' ')
 
   return [
-    'Professional product marketing poster for an Indonesian UMKM product.',
+    livestock ? 'Professional Indonesian livestock marketing poster for TERKASA.' : 'Professional product marketing poster for an Indonesian UMKM product.',
     `Hero product: ${product}.`,
     brandLine,
     categoryLine,
     `Poster mood/style (${style}): ${styleLook}.`,
     'Clean commercial advertising layout, high contrast, studio product photography.',
     `Optimized for ${platform} social media.`,
-    'Soft studio lighting, sharp focus on the real product package as hero, modern Indonesian SMB aesthetic, elegant empty space for caption overlay.',
+    livestock ? 'Natural farm photography, clear healthy-looking animal subject without medical claims, forest green and lime brand accents, elegant readable Indonesian typography.' : 'Soft commercial lighting, sharp focus on the actual product, modern Indonesian SMB aesthetic, elegant space for caption overlay.',
     fidelity,
     visual,
     antiLeak,

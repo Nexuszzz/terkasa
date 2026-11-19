@@ -23,6 +23,9 @@ export function seedDataDir() {
 
 /** Direktori yang boleh di-write. */
 export function writableDataDir() {
+  if (process.env.TERKASA_DATA_DIR && !isServerlessEphemeral()) {
+    return path.resolve(process.env.TERKASA_DATA_DIR)
+  }
   if (isServerlessEphemeral()) {
     return path.join('/tmp', 'umkman-data')
   }

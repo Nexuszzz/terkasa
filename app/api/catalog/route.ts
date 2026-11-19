@@ -1,5 +1,6 @@
 import { getSessionUser, unauthorized } from '@/lib/server/auth'
-import { createCatalogProduct, getSnapshot, updateCatalogProduct } from '@/lib/server/db'
+import { adjustCatalogStock, createCatalogProduct, getSnapshot, updateCatalogProduct } from '@/lib/server/db'
+import { normalizeLivestock } from '@/lib/livestock'
 import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
         keywords: body.keywords,
         rating: body.rating,
         sold: body.sold,
+        livestock: normalizeLivestock(body.livestock),
       },
       bizId(request, body),
     )
@@ -65,16 +67,12 @@ export async function PATCH(request: Request) {
     }
     const { id, businessId: _b, stockDelta, ...patch } = body
 
-    // stockDelta: +N restock tanpa hitung di client (lebih aman)
-    if (stockDelta != null && Number.isFinite(Number(stockDelta))) {
-      const delta = Math.round(Number(stockDelta))
-      const snap = await getSnapshot(bizId(request, body), user.id)
-      const current = snap.catalog.find((p) => p.id === id)
-      if (!current) {
-        return NextResponse.json({ error: 'Produk tidak ditemukan.' }, { status: 404 })
-      }
-      patch.stock = Math.max(0, current.stock + delta)
+    if (stockDelta != null) {
+      const product = await adjustCatalogStock(user.id, id, Number(stockDelta), bizId(request, body))
+      return NextResponse.json({ product })
     }
+
+    if (patch.livestock !== undefined) patch.livestock = normalizeLivestock(patch.livestock)
 
     const product = await updateCatalogProduct(user.id, id, patch, bizId(request, body))
     return NextResponse.json({ product })

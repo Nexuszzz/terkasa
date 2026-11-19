@@ -1,9 +1,9 @@
+import { fetchGemini, geminiRuntimeConfig } from '@/lib/server/gemini-client'
 /**
  * Balasan AI untuk chatbot WhatsApp (pesan pelanggan → Gemini).
  */
 
 import { getSystemInstruction, buildAssistantUserPrompt } from '@/lib/ai-prompts'
-import { envTrim } from '@/lib/server/auth'
 import type { BusinessDatabase } from '@/lib/types'
 
 /**
@@ -64,12 +64,12 @@ export async function generateWhatsAppReply(
   customerMessage: string,
   customerName?: string,
 ): Promise<string> {
-  const key = envTrim('GEMINI_API_KEY')
-  if (!key) {
+  const config = geminiRuntimeConfig()
+  if (!config.configured) {
     return `Terima kasih sudah menghubungi ${db.profile.brand}. AI belum dikonfigurasi — admin akan membalas segera.`
   }
 
-  const model = envTrim('GEMINI_MODEL') || 'gemini-2.5-flash'
+  const model = config.model
   const system = `${getSystemInstruction(db)}
 
 ## Mode WhatsApp Chatbot
@@ -90,9 +90,7 @@ export async function generateWhatsAppReply(
       .filter(Boolean)
       .join('\n'),
   )
-
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`
-  const res = await fetch(endpoint, {
+  const res = await fetchGemini(model, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

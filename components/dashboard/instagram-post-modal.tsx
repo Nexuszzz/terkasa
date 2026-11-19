@@ -38,9 +38,11 @@ export function InstagramPostModal({ item, isOpen, onClose }: Props) {
       .then((r) => r.json())
       .then((d) => setApiConfigured(Boolean(d.apiConfigured)))
       .catch(() => setApiConfigured(false))
-    setPrivateSession(
-      Boolean(profile?.instagram?.privateMode && profile?.instagram?.privateSessionId),
-    )
+    setPrivateSession(false)
+    void fetch(`/api/instagram/private/login${q}`)
+      .then((response) => response.json())
+      .then((data) => setPrivateSession(Boolean(data.sessionValid)))
+      .catch(() => setPrivateSession(false))
   }, [isOpen, businessId, profile?.instagram?.privateMode, profile?.instagram?.privateSessionId])
 
   async function copyCaption() {
@@ -61,7 +63,7 @@ export function InstagramPostModal({ item, isOpen, onClose }: Props) {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `umkman-ig-${item.id.slice(0, 8)}.${blob.type.includes('png') ? 'png' : 'jpg'}`
+      a.download = `terkasa-ig-${item.id.slice(0, 8)}.${blob.type.includes('png') ? 'png' : 'jpg'}`
       a.click()
       URL.revokeObjectURL(url)
     } catch {

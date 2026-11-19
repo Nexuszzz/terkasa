@@ -13,13 +13,14 @@ import { TransactionView } from '@/components/dashboard/transaction-view'
 import { HistoryView } from '@/components/dashboard/history-view'
 import { SettingsView } from '@/components/dashboard/settings-view'
 import { OnboardingPanel } from '@/components/dashboard/onboarding'
+import { LivestockInventory } from '@/components/dashboard/livestock-inventory'
 import { DashboardProvider, useDashboard } from '@/lib/dashboard-store'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 
 function DashboardShell() {
-  const [activeTab, setActiveTab] = useState<DashboardTab>('Ringkasan')
-  const { loading, error, ready, refresh, needsOnboarding } = useDashboard()
+  const [activeTab, setActiveTab] = useState<DashboardTab>('Inventori')
+  const { loading, error, ready, refresh, needsOnboarding, businessId } = useDashboard()
 
   return (
     <main className="relative min-h-dvh overflow-x-clip py-3 safe-px safe-pb sm:py-6 md:px-6 lg:px-10 lg:py-8">
@@ -29,9 +30,9 @@ function DashboardShell() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.985 }}
+        initial={{ opacity: 0, y: 24, scale: 0.976 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.7, ease: [0.29, 1, 0.36, 1] }}
         className="relative mx-auto flex w-full min-w-0 max-w-[1360px] flex-col gap-4 rounded-2xl border border-border bg-card p-3 shadow-2xl sm:gap-6 sm:rounded-3xl sm:p-5 md:rounded-[2rem] md:p-6 lg:gap-6 lg:p-8"
       >
         <DashboardNavbar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -59,10 +60,14 @@ function DashboardShell() {
 
         {ready && !needsOnboarding && (
           <AnimatePresence mode="wait" initial={false}>
-            {activeTab === 'Konten' ? (
+            {activeTab === 'Inventori' ? (
+              <motion.div key="inventori" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <LivestockInventory key={businessId} />
+              </motion.div>
+            ) : activeTab === 'Konten' ? (
               <motion.div
                 key="konten"
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 11 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}

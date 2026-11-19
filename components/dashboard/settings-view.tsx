@@ -285,7 +285,7 @@ function ProfileSection() {
   }
 
   return (
-    <SectionCard id="profil" title="Profil Usaha" desc="Data ini disimpan di server dan dipakai AI + invoice UMKMan.">
+    <SectionCard id="profil" title="Profil Usaha" desc="Data ini disimpan di server dan dipakai AI + invoice TERKASA.">
       <div className="mb-5 flex flex-wrap items-center gap-4">
         <div className="group relative">
           <Image
@@ -874,7 +874,7 @@ function SecuritySection() {
     ? 'Akun Google — sandi lokal opsional'
     : passwordChangedAt
       ? `Terakhir diganti ${new Date(passwordChangedAt).toLocaleDateString('id-ID')}`
-      : 'Belum pernah diganti di UMKMan'
+      : 'Belum pernah diganti di TERKASA'
 
   return (
     <SectionCard id="keamanan" title="Keamanan" desc="Kata sandi dan kontrol sesi login.">

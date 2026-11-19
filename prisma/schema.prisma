@@ -63,6 +63,7 @@ model Product {
   lowStockAt  Int      @default(10)
   sku         String
   keywords    Json     @default("[]")
+  livestock   Json?
 
   @@index([businessId])
   @@map("products")

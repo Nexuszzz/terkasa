@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
           brand,
           owner: profile.name || profile.email,
           email: profile.email,
-          category: 'UMKM',
+          category: 'Peternakan',
         })
       }
     } catch (e) {

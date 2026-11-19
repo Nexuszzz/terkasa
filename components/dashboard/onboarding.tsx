@@ -14,7 +14,7 @@ export function OnboardingPanel() {
     brand: '',
     owner: user?.name || '',
     city: '',
-    category: '',
+    category: 'Peternakan',
   })
 
   async function onSubmit(e: React.FormEvent) {
@@ -46,7 +46,7 @@ export function OnboardingPanel() {
         <div className="min-w-0 flex-1">
           <p className="text-sm text-muted-foreground">Hai, {user?.name ?? 'Pengguna'} 👋</p>
           <h2 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-2xl">
-            Buat usaha pertamamu
+            Mulai kelola peternakanmu
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-pretty">
             Akun ini masih kosong. Setiap client hanya melihat usahanya sendiri — data usaha
@@ -65,7 +65,7 @@ export function OnboardingPanel() {
 
       <div className="flex items-center gap-2 rounded-xl border border-accent/25 bg-accent/8 px-3.5 py-3 text-xs text-muted-foreground">
         <Sparkles className="size-4 shrink-0 text-accent" />
-        Setelah usaha dibuat, tambah produk di Pengaturan → Katalog, lalu catat transaksi.
+        Buka Inventori untuk menambahkan jenis ternak dan jumlah awal. Stok juga terhubung ke transaksi dan promosi AI.
       </div>
 
       <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3">
@@ -75,7 +75,7 @@ export function OnboardingPanel() {
             required
             value={form.brand}
             onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))}
-            placeholder="Nama brand / toko kamu"
+            placeholder="Mis. Ternak Makmur Lampung"
             className="h-11 rounded-xl border border-input bg-card px-3.5 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
           />
         </label>
@@ -102,7 +102,7 @@ export function OnboardingPanel() {
           <input
             value={form.category}
             onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-            placeholder="Mis. F&B, fashion, jasa, retail…"
+            placeholder="Mis. Peternakan sapi, domba, unggas…"
             className="h-11 rounded-xl border border-input bg-card px-3.5 text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
           />
         </label>

@@ -1,14 +1,16 @@
 'use client'
 
+import { BrandMark } from '@/components/brand-mark'
+
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bell, CheckCheck, FileText, LogOut, Moon, PackageSearch, Plus, Receipt, Settings, Store, Sun, Zap } from 'lucide-react'
+import { Bell, CheckCheck, FileText, LogOut, Moon, PackageSearch, Plus, Receipt, Settings, Store, Sun } from 'lucide-react'
 import { useTheme } from '@/components/theme-provider'
 import { useDashboard } from '@/lib/dashboard-store'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BusinessSwitcher } from './business-switcher'
 import { InstagramIcon } from './brand-icons'
 
-const TABS = ['Ringkasan', 'Konten', 'Transaksi', 'Riwayat'] as const
+const TABS = ['Ringkasan', 'Inventori', 'Konten', 'Transaksi', 'Riwayat'] as const
 export type DashboardTab = (typeof TABS)[number] | 'Pengaturan'
 
 function IntegrationDot({
@@ -101,7 +103,7 @@ export function DashboardNavbar({
       items.push({
         id: 'draft',
         title: `${draftCount} draft siap ditandai terposting`,
-        detail: 'Status lokal di UMKMan (belum publish ke marketplace).',
+        detail: 'Status lokal di TERKASA (belum publish ke marketplace).',
         time: 'baru',
         tab: 'Konten',
         icon: FileText,
@@ -169,9 +171,9 @@ export function DashboardNavbar({
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-3 md:gap-4">
           <a href="/" className="flex shrink-0 items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-lg bg-accent">
-              <Zap className="size-4 text-accent-foreground" aria-hidden="true" />
+              <BrandMark className="size-4 text-accent-foreground" aria-hidden="true" />
             </span>
-            <span className="font-display text-base font-bold tracking-tight sm:text-lg">UMKMan</span>
+            <span className="font-display text-base font-bold tracking-tight sm:text-lg">TERKASA</span>
           </a>
           <BusinessSwitcher />
           <div className="hidden items-center md:flex">

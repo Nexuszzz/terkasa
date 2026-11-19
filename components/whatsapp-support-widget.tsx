@@ -38,7 +38,7 @@ export function WhatsAppSupportWidget() {
     {
       id: 'welcome',
       role: 'bot',
-      text: 'Halo! Saya asisten support UMKMan 👋\nTanya fitur, cara daftar, atau demo. Kalau pertanyaan terlalu spesifik, saya arahkan ke CS WhatsApp.',
+      text: 'Halo! Saya asisten support TERKASA 👋\nTanya fitur, cara daftar, atau demo. Kalau pertanyaan terlalu spesifik, saya arahkan ke CS WhatsApp.',
     },
   ])
   const listRef = useRef<HTMLDivElement>(null)
@@ -83,7 +83,7 @@ export function WhatsAppSupportWidget() {
         /```json/i.test(reply)
       if (looksLikeJson) {
         reply =
-          'Halo! Ada yang bisa dibantu seputar fitur UMKMan, cara daftar, atau demo? Atau chat CS WhatsApp di tombol hijau 😊'
+          'Halo! Ada yang bisa dibantu seputar fitur TERKASA, cara daftar, atau demo? Atau chat CS WhatsApp di tombol hijau 😊'
       }
       setMessages((prev) => [
         ...prev,
@@ -92,7 +92,7 @@ export function WhatsAppSupportWidget() {
           role: 'bot',
           text: reply,
           escalate: Boolean(data.escalate),
-          waLink: data.waLink || waMeLink(`Halo CS UMKMan: ${message}`),
+          waLink: data.waLink || waMeLink(`Halo CS TERKASA: ${message}`),
         },
       ])
     } catch {
@@ -118,7 +118,7 @@ export function WhatsAppSupportWidget() {
           {open && (
             <motion.div
               role="dialog"
-              aria-label="Chat support UMKMan"
+              aria-label="Chat support TERKASA"
               initial={{ opacity: 0, y: 16, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.96 }}
@@ -131,7 +131,7 @@ export function WhatsAppSupportWidget() {
                   <WhatsAppGlyph className="size-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold leading-tight">Support UMKMan</p>
+                  <p className="text-sm font-bold leading-tight">Support TERKASA</p>
                   <p className="text-[11px] text-white/80">
                     Online · CS: {waDisplay}
                   </p>
@@ -197,7 +197,7 @@ export function WhatsAppSupportWidget() {
                     onClick={() => {
                       if (chip.id === 'wa') {
                         window.open(
-                          waMeLink('Halo CS UMKMan, saya butuh bantuan.'),
+                          waMeLink('Halo CS TERKASA, saya butuh bantuan.'),
                           '_blank',
                           'noopener,noreferrer',
                         )
@@ -223,7 +223,7 @@ export function WhatsAppSupportWidget() {
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Tanya seputar UMKMan…"
+                  placeholder="Tanya seputar TERKASA…"
                   maxLength={500}
                   className="min-h-10 min-w-0 flex-1 rounded-full border border-input bg-background px-3.5 text-sm outline-none focus:border-accent"
                 />

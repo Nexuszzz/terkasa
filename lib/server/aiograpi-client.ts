@@ -111,6 +111,7 @@ export async function aiograpiVerifySession(
     const res = await fetch(`${baseUrl()}/account`, {
       headers: sessionHeaders(sid),
       cache: 'no-store',
+      signal: AbortSignal.timeout(15_000),
     })
     const text = await res.text()
     let data: Record<string, unknown> = {}
@@ -129,7 +130,7 @@ export async function aiograpiVerifySession(
             'login_required: session IG sudah tidak valid / kadaluarsa. Ambil sessionid baru dari browser (logout-login IG), lalu tempel lagi.',
         }
       }
-      return { ok: false, error: msg.slice(0, 400) || `HTTP ${res.status}` }
+      return { ok: false, error: msg.replaceAll(sid, '[redacted]').slice(0, 400) || `HTTP ${res.status}` }
     }
     const username = String(data.username || data.full_name || '')
     return { ok: true, username: username || undefined }
@@ -512,7 +513,7 @@ export async function fetchImageBuffer(imageUrl: string): Promise<{
     return {
       buffer: jpeg,
       contentType: 'image/jpeg',
-      filename: 'umkman-ig.jpg',
+      filename: 'terkasa-ig.jpg',
     }
   } catch (error) {
     // Fallback tanpa sharp: kirim original hanya jika JPEG murni
@@ -520,7 +521,7 @@ export async function fetchImageBuffer(imageUrl: string): Promise<{
       return {
         buffer: raw,
         contentType: 'image/jpeg',
-        filename: 'umkman-ig.jpg',
+        filename: 'terkasa-ig.jpg',
       }
     }
     throw new Error(

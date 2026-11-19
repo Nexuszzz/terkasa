@@ -1,5 +1,5 @@
 {
-  "name": "my-project",
+  "name": "terkasa",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,15 +8,22 @@
     "postinstall": "node scripts/prisma-generate.js",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test:inventory": "node --import tsx scripts/test-inventory.mjs",
+    "test:integrations": "node --import tsx scripts/test-integrations.mjs",
+    "test:gemini-web": "node --import tsx scripts/test-gemini-web.mjs",
+    "test:gemini-web:http": "node scripts/test-gemini-web-http.mjs",
+    "brand:icons": "node scripts/brand-icons.mjs",
+    "mobile:prepare": "node scripts/prepare-mobile.mjs",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "npx tsx scripts/seed-pg.ts",
     "db:studio": "prisma studio",
-    "cap:sync": "npx cap sync",
-    "cap:android": "npx cap sync android && npx cap open android",
+    "cap:sync": "npm run mobile:prepare && cap sync",
+    "cap:android": "npm run cap:sync -- android && cap open android",
     "cap:add:android": "npx cap add android",
-    "cap:copy": "npx cap copy"
+    "cap:copy": "npm run mobile:prepare && cap copy"
   },
   "prisma": {
     "seed": "npx tsx scripts/seed-pg.ts"

@@ -267,7 +267,7 @@ export async function downloadFinancialPdf(report: FinancialReport, narrative: s
   doc.setTextColor(120, 120, 120)
   const footLines = wrapLines(
     doc,
-    `Dibuat otomatis oleh UMKMan untuk ${report.business.brand} (ID usaha: ${report.businessId}). Data hanya dari akun & katalog usaha ini — bukan usaha lain. Laporan internal UMKM · Bukan dokumen pajak resmi.`,
+    `Dibuat otomatis oleh TERKASA untuk ${report.business.brand} (ID usaha: ${report.businessId}). Data hanya dari akun & katalog usaha ini — bukan usaha lain. Laporan internal UMKM · Bukan dokumen pajak resmi.`,
     contentW,
   )
   for (const line of footLines) {

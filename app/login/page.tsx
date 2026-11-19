@@ -4,9 +4,9 @@ import { AuthForm } from '@/components/auth/auth-form'
 import { AuthVisual } from '@/components/auth/auth-visual'
 
 export const metadata: Metadata = {
-  title: 'Masuk — UMKMan',
+  title: 'Masuk — TERKASA',
   description:
-    'Masuk atau daftar UMKMan untuk mulai mengubah foto produk jadi konten siap jual dalam hitungan detik.',
+    'Masuk atau daftar TERKASA untuk mengelola inventori ternak, transaksi, dan pemasaran digital peternakan Anda.',
 }
 
 export default function LoginPage() {

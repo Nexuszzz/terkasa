@@ -5,6 +5,8 @@
 
 import { promises as fs } from 'fs'
 import path from 'path'
+import { normalizePlatformName, PLATFORM_NAME, PLATFORM_TAGLINE } from '@/lib/brand'
+import { assertLivestockPrice, assertStock, assertStockDelta, normalizeLivestock } from '@/lib/livestock'
 import { DEFAULT_AI_PREFERENCES, normalizeAiPreferences } from '@/lib/ai-style'
 import { normalizeLocale, normalizeNotifications } from '@/lib/preferences'
 import {
@@ -40,8 +42,8 @@ function seedPath() {
 export const NUSACID_OWNER_USER_ID = 'user-nusacid-naufal'
 
 const DEFAULT_APP = {
-  appName: 'UMKMan',
-  tagline: 'UMKM Naik Kelas, Ditenagai Kecerdasan Buatan',
+  appName: PLATFORM_NAME,
+  tagline: PLATFORM_TAGLINE,
   currency: 'IDR',
   timezone: 'WIB (GMT+7)',
   country: 'Indonesia',
@@ -84,6 +86,7 @@ function normalizeProfile(profile: BusinessProfile): BusinessProfile {
   const { plan: _removedPlan, ...rest } = profile as BusinessProfile & { plan?: unknown }
   return {
     ...rest,
+    appName: normalizePlatformName(rest.appName),
     ai: normalizeAiPreferences(rest.ai),
     notifications: normalizeNotifications(rest.notifications),
     locale: normalizeLocale(rest.locale),
@@ -332,10 +335,10 @@ export async function createBusiness(
       city: (input.city || '').trim() || 'Indonesia',
       region: (input.region || '').trim() || '',
       country: DEFAULT_APP.country,
-      email: (input.email || '').trim() || `${slug}@umkman.local`,
+      email: (input.email || '').trim() || `${slug}@terkasa.local`,
       phone: (input.phone || '').trim() || '',
       address: (input.address || input.city || '').trim() || '',
-      category: (input.category || '').trim() || 'UMKM',
+      category: (input.category || '').trim() || 'Peternakan',
       platforms: [...DEFAULT_APP.platforms],
       currency: DEFAULT_APP.currency,
       timezone: DEFAULT_APP.timezone,
@@ -444,6 +447,12 @@ export async function updateCatalogProduct(
     const biz = requireOwnedBusiness(db, userId, businessId)
     const index = biz.catalog.findIndex((p) => p.id === id)
     if (index < 0) throw new Error(`Produk ${id} tidak ditemukan di usaha ini.`)
+    if (patch.livestock !== undefined) patch.livestock = normalizeLivestock(patch.livestock)
+    if (biz.catalog[index].livestock || patch.livestock) {
+      if (patch.unitPrice !== undefined) assertLivestockPrice(patch.unitPrice)
+      if (patch.stock !== undefined) assertStock(patch.stock)
+      if (patch.lowStockAt !== undefined) assertStock(patch.lowStockAt)
+    }
     biz.catalog[index] = { ...biz.catalog[index], ...patch, id }
     touchBusiness(biz)
     await writePlatform(db)
@@ -465,6 +474,12 @@ export async function createCatalogProduct(
       throw new Error('Harga satuan tidak valid.')
     }
 
+    const livestock = normalizeLivestock(input.livestock)
+    if (livestock) {
+      assertLivestockPrice(input.unitPrice)
+      assertStock(input.stock ?? 0)
+      assertStock(input.lowStockAt ?? 2)
+    }
     const product: CatalogProduct = {
       id: `prod-${Date.now().toString(36)}`,
       name,
@@ -485,9 +500,29 @@ export async function createCatalogProduct(
             .split(/[^a-z0-9]+/i)
             .filter((t) => t.length > 1)
             .slice(0, 12),
+      ...(livestock ? { livestock } : {}),
     }
 
     biz.catalog.push(product)
+    touchBusiness(biz)
+    await writePlatform(db)
+    return product
+  })
+}
+
+/** Atomic within the file-store write queue; never silently clamp an excessive reduction. */
+export async function adjustCatalogStock(userId: string, id: string, delta: number, businessId?: string | null) {
+  assertStockDelta(delta)
+  return withLock(async () => {
+    const db = await readPlatform()
+    const biz = requireOwnedBusiness(db, userId, businessId)
+    if (businessId && biz.id !== businessId) throw new Error('Usaha tidak cocok dengan akun Anda.')
+    const product = biz.catalog.find((item) => item.id === id)
+    if (!product) throw new Error('Produk tidak ditemukan di usaha ini.')
+    const next = product.stock + delta
+    if (next < 0) throw new Error(`Stok tidak cukup. Tersedia ${product.stock}.`)
+    if (product.livestock) assertStock(next)
+    product.stock = next
     touchBusiness(biz)
     await writePlatform(db)
     return product
@@ -583,6 +618,9 @@ export async function createTransaction(
       biz.catalog = [...biz.catalog, product]
     }
 
+    if (product.livestock && (!Number.isSafeInteger(Number(input.qty)) || Number(input.qty) < 1)) {
+      throw new Error('Jumlah penjualan ternak harus bilangan bulat minimal 1 ekor.')
+    }
     if (product.stock < qty) {
       throw new Error(
         `Stok ${product.shortName} tidak cukup. Tersedia ${product.stock}, diminta ${qty}. Tambah stok di Katalog dulu.`,

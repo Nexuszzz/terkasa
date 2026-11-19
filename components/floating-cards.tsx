@@ -102,13 +102,13 @@ export function FloatingCards() {
             </span>
             <div>
               <p className="text-sm font-medium text-foreground">
-                Produk unggulan
+                Sapi Limousin
               </p>
-              <p className="text-xs text-muted-foreground">Katalog toko · stok live</p>
+              <p className="text-xs text-muted-foreground">Contoh inventori · Kandang A</p>
             </div>
           </div>
           <p className="mt-4 font-mono text-2xl font-bold text-foreground">
-            Rp16.300
+            12 ekor
           </p>
           <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-1 text-[11px] text-accent">
             <motion.span
@@ -149,7 +149,7 @@ export function FloatingCards() {
             {'Caption siap ✓'}
           </p>
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-            {'Instagram · TikTok · WhatsApp'}
+            {'Instagram · Tokopedia · Lazada'}
           </p>
           <span className="mt-4 inline-block rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-[11px] font-medium text-accent">
             3 platform sekaligus
@@ -164,15 +164,15 @@ export function FloatingCards() {
         className="w-full max-w-xs md:z-20 md:w-60 md:rotate-2 md:translate-y-5 md:-ml-8"
       >
         <div className={`${cardBase} p-5`}>
-          <p className="text-xs text-muted-foreground">Penjualan minggu ini</p>
-          <p className="mt-2 font-mono text-4xl font-bold text-accent">+12%</p>
+          <p className="text-xs text-muted-foreground">Contoh ringkasan stok</p>
+          <p className="mt-2 font-mono text-4xl font-bold text-accent">65 ekor</p>
           <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-1 text-[11px] text-accent">
             <motion.span
               className="size-1.5 rounded-full bg-accent"
               animate={{ opacity: [1, 0.3, 1] }}
               transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
             />
-            Tren naik
+            Tercatat per jenis ternak
           </span>
         </div>
       </FloatCard>
@@ -186,7 +186,7 @@ export function FloatingCards() {
         <div className={`${cardBase} p-5`}>
           <ul className="flex flex-col gap-3.5">
             {[
-              { color: 'bg-accent', label: 'Poster promo Jumat', status: 'Selesai' },
+              { color: 'bg-accent', label: 'Promosi ternak siap jual', status: 'Selesai' },
               { color: 'bg-accent-warm', label: 'Balasan chat pembeli', status: 'Selesai' },
               { color: 'bg-foreground/50', label: 'Laporan bulanan', status: 'Tersimpan' },
             ].map((task, i) => (

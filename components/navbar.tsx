@@ -1,6 +1,8 @@
 'use client'
 
-import { Menu, X, Zap } from 'lucide-react'
+import { BrandMark } from '@/components/brand-mark'
+
+import { Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ThemeToggle } from './theme-toggle'
 
@@ -8,7 +10,7 @@ const menu = [
   { label: 'Beranda', href: '#beranda' },
   { label: 'Fitur', href: '#fitur' },
   { label: 'Cara Kerja', href: '#cara-kerja' },
-  { label: 'Studi Kasus', href: '#studi-kasus' },
+  { label: 'Contoh Penggunaan', href: '#studi-kasus' },
   { label: 'Harga', href: '#harga' },
 ]
 
@@ -32,10 +34,10 @@ export function Navbar() {
       >
         <a href="#beranda" className="flex min-w-0 items-center gap-2 sm:gap-2.5">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent">
-            <Zap className="size-4 text-accent-foreground" aria-hidden="true" />
+            <BrandMark className="size-4 text-accent-foreground" aria-hidden="true" />
           </span>
           <span className="font-display text-base font-bold tracking-tight sm:text-lg">
-            UMKMan
+            TERKASA
           </span>
         </a>
 

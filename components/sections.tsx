@@ -1,21 +1,23 @@
 'use client'
 
+import { BrandMark } from '@/components/brand-mark'
+
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
   BarChart3,
   MessageSquareText,
+  Warehouse,
   Sparkles,
-  Zap,
 } from 'lucide-react'
 import { CountUp, Reveal, Stagger, StaggerItem } from './motion'
 
 /* ============ Statistik strip ============ */
 
 const stats = [
-  { value: 64, suffix: ' juta+', label: 'pelaku UMKM di Indonesia' },
-  { value: 12, suffix: '%', label: 'yang sudah go digital' },
-  { value: 44, suffix: '%', label: 'belum paham iklan digital' },
+  { value: 7, suffix: ' jenis', label: 'pilihan kategori ternak' },
+  { value: 1, suffix: ' inventori', label: 'stok, transaksi & laporan terhubung' },
+  { value: 3, suffix: ' langkah', label: 'mulai dari catat hingga promosi' },
 ]
 
 export function StatsStrip() {
@@ -39,19 +41,24 @@ export function StatsStrip() {
 
 const features = [
   {
+    icon: Warehouse,
+    title: 'Inventori Ternak',
+    desc: 'Catat sapi, domba, kambing, dan unggas per kelompok kandang. Tambah jumlah, koreksi stok, dan pantau stok rendah.',
+  },
+  {
     icon: Sparkles,
     title: 'Konten Otomatis',
-    desc: 'Caption, poster, dan ide promosi dibuat AI dalam hitungan detik — langsung siap posting ke semua platform.',
+    desc: 'Siapkan caption dan poster promosi ternak dari foto produk. Pilih gaya bahasa yang sesuai dengan usaha Anda.',
   },
   {
     icon: MessageSquareText,
     title: 'Asisten Chat Pembeli',
-    desc: 'Balas pertanyaan pelanggan 24 jam nonstop dengan jawaban yang sesuai gaya bahasa toko Anda.',
+    desc: 'Hubungkan WhatsApp usaha untuk membantu menjawab pertanyaan harga, ketersediaan, dan pemesanan dari katalog Anda.',
   },
   {
     icon: BarChart3,
     title: 'Analisis Penjualan',
-    desc: 'Pantau tren penjualan dan dapatkan rekomendasi harga serta stok berdasarkan data usaha Anda.',
+    desc: 'Catat transaksi penjualan, ikuti perubahan stok, dan unduh laporan omzet serta estimasi laba dalam PDF.',
   },
 ]
 
@@ -60,15 +67,15 @@ export function Features() {
     <section id="fitur" className="mx-auto max-w-6xl px-4 py-16 sm:py-20 md:px-6 md:py-24">
       <Reveal className="mx-auto max-w-xl text-center">
         <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl text-balance">
-          Semua yang UMKM butuhkan, dalam satu aplikasi
+          Kandang terkelola. Pemasaran lebih mudah.
         </h2>
         <p className="mt-4 text-muted-foreground leading-relaxed">
-          Tidak perlu tim marketing atau jago teknologi. Cukup foto produk,
-          sisanya UMKMan yang kerjakan.
+          Mulai dari jumlah ternak, stok siap jual, hingga konten promosi.
+          TERKASA membantu pekerjaan harian UMKM peternakan dalam satu aplikasi.
         </p>
       </Reveal>
 
-      <Stagger className="mt-14 grid gap-6 md:grid-cols-3">
+      <Stagger className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {features.map((f) => (
           <StaggerItem key={f.title}>
             <motion.article
@@ -96,18 +103,18 @@ export function Features() {
 const steps = [
   {
     num: '01',
-    title: 'Daftarkan usaha Anda',
-    desc: 'Isi nama toko, jenis produk, dan target pasar dalam 2 menit.',
+    title: 'Daftarkan peternakan',
+    desc: 'Buat akun dan isi profil peternakan. Setiap usaha memiliki inventori dan laporannya sendiri.',
   },
   {
     num: '02',
-    title: 'Unggah foto produk',
-    desc: 'AI mengenali produk dan menyiapkan materi promosi otomatis.',
+    title: 'Catat jumlah ternak',
+    desc: 'Tambahkan jenis ternak, ras, kandang, jumlah awal, dan harga. Perbarui jumlah saat ternak masuk atau keluar.',
   },
   {
     num: '03',
-    title: 'Posting & pantau hasil',
-    desc: 'Sebar ke 3 platform sekaligus dan lihat penjualan naik.',
+    title: 'Promosikan & catat penjualan',
+    desc: 'Siapkan konten dengan AI, bagikan ke kanal penjualan, dan catat transaksi agar stok serta laporan ikut diperbarui.',
   },
 ]
 
@@ -159,22 +166,22 @@ export function CaseStudy() {
         <div className="grid overflow-hidden rounded-2xl border border-border bg-card sm:rounded-3xl md:grid-cols-2">
           <div className="flex flex-col justify-center p-6 sm:p-8 md:p-12">
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-              Studi Kasus
+              Contoh Penggunaan
             </span>
             <h2 className="mt-5 font-display text-2xl font-bold tracking-tight md:text-3xl text-balance">
-              UMKM naik kelas: omzet naik 2x dalam 3 bulan
+              Dari stok di kandang, hingga promosi yang siap dibagikan.
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
-              Banyak pemilik usaha yang dulu cuma jualan lewat chat. Setelah memakai
-              UMKMan, konten promosi dibuat otomatis, stok & transaksi rapi, dan
-              penjualan online tumbuh konsisten tiap minggu — cocok untuk F&amp;B,
-              fashion, jasa, retail, dan jenis UMKM lain.
+              Kelompokkan sapi Limousin di Kandang A dan domba di Kandang B.
+              Saat ada ternak masuk, tambahkan jumlahnya. Ketika terjual, catat
+              transaksi dan stok berkurang otomatis. Foto ternak juga bisa menjadi
+              bahan caption dan poster promosi yang sesuai dengan usaha Anda.
             </p>
             <a
               href="/login"
               className="group mt-7 inline-flex w-fit items-center gap-2 text-sm font-semibold text-accent hover:underline"
             >
-              Baca cerita lengkapnya
+              Mulai kelola peternakan
               <ArrowRight
                 className="size-4 transition-transform group-hover:translate-x-1"
                 aria-hidden="true"
@@ -184,19 +191,19 @@ export function CaseStudy() {
 
           <div className="border-t border-border bg-background/50 p-6 sm:p-8 md:border-l md:border-t-0 md:p-12">
             <p className="text-xs text-muted-foreground">
-              Contoh dashboard UMKM — 90 hari terakhir
+              Simulasi inventori peternakan · bukan data usaha Anda
             </p>
             <p className="mt-3 font-mono text-4xl font-bold text-accent">
-              <CountUp value={104} prefix="+" suffix="%" />
+              <CountUp value={65} suffix=" ekor" />
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              pertumbuhan omzet
+              tercatat dalam tiga kelompok ternak
             </p>
             <div className="mt-7 flex flex-col gap-4">
               {[
-                { label: 'Konten dibuat AI', value: '312' },
-                { label: 'Pesan pembeli terbalas', value: '1.840' },
-                { label: 'Jam kerja dihemat / minggu', value: '11 jam' },
+                { label: 'Sapi · Kandang A', value: '12 ekor' },
+                { label: 'Domba · Kandang B', value: '18 ekor' },
+                { label: 'Kambing · Kandang C', value: '35 ekor' },
               ].map((row, i) => (
                 <motion.div
                   key={row.label}
@@ -234,10 +241,10 @@ export function CtaBand() {
       />
       <Reveal className="relative mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center sm:py-20 md:py-24">
         <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl md:text-5xl text-balance">
-          Siap membawa usaha Anda naik kelas?
+          Siap membawa peternakan Anda naik kelas?
         </h2>
         <p className="mt-4 max-w-md text-muted-foreground leading-relaxed">
-          Gratis 14 hari, tanpa kartu kredit. Batalkan kapan saja.
+          Mulai catat ternak, rapikan stok, dan siapkan promosi digital bersama TERKASA.
         </p>
         <motion.a
           href="/login"
@@ -265,12 +272,12 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row md:px-6">
         <a href="#beranda" className="flex items-center gap-2.5">
           <span className="flex size-7 items-center justify-center rounded-full bg-accent">
-            <Zap className="size-3.5 text-accent-foreground" aria-hidden="true" />
+            <BrandMark className="size-3.5 text-accent-foreground" aria-hidden="true" />
           </span>
-          <span className="font-display font-bold">UMKMan</span>
+          <span className="font-display font-bold">TERKASA</span>
         </a>
         <p className="text-xs text-muted-foreground">
-          {'© 2026 UMKMan. Semua hak dilindungi.'}
+          {'© 2026 TERKASA. Semua hak dilindungi.'}
         </p>
       </div>
     </footer>

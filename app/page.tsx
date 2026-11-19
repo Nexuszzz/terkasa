@@ -1,27 +1,5 @@
-import { Navbar } from '@/components/navbar'
-import { Hero } from '@/components/hero'
-import {
-  CaseStudy,
-  CtaBand,
-  Features,
-  HowItWorks,
-  SiteFooter,
-  StatsStrip,
-} from '@/components/sections'
+import { LandingPage } from '@/components/landing/landing-page'
 
 export default function Page() {
-  return (
-    <>
-      <Navbar />
-      <main>
-        <Hero />
-        <StatsStrip />
-        <Features />
-        <HowItWorks />
-        <CaseStudy />
-        <CtaBand />
-      </main>
-      <SiteFooter />
-    </>
-  )
+  return <LandingPage />
 }

@@ -1,3 +1,4 @@
+import { fetchGemini, geminiRuntimeConfig, geminiTimeout } from '@/lib/server/gemini-client'
 import {
   matchFaq,
   shouldEscalate,
@@ -5,7 +6,6 @@ import {
   supportWaNumber,
   waMeLink,
 } from '@/lib/support-faq'
-import { envTrim } from '@/lib/server/auth'
 import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -57,7 +57,7 @@ function extractReply(raw: string): { reply: string; escalate: boolean } {
   // 3) Plain text — jangan tampilkan blob JSON mentah
   if (cleaned.startsWith('{') || cleaned.startsWith('[')) {
     return {
-      reply: 'Halo! Ada yang bisa dibantu seputar fitur UMKMan, cara daftar, atau demo? 😊',
+      reply: 'Halo! Ada yang bisa dibantu seputar fitur TERKASA, cara daftar, atau demo? 😊',
       escalate: false,
     }
   }
@@ -76,7 +76,7 @@ function sanitizeUserFacing(s: string): string {
     .trim()
   // Kalau setelah dibersihkan masih kelihatan seperti JSON mentah → fallback
   if (out.startsWith('{') || out.startsWith('[') || /"reply"\s*:/.test(out)) {
-    return 'Halo! Ada yang bisa dibantu seputar fitur UMKMan, cara daftar, atau demo? 😊'
+    return 'Halo! Ada yang bisa dibantu seputar fitur TERKASA, cara daftar, atau demo? 😊'
   }
   return out.slice(0, 800)
 }
@@ -101,29 +101,28 @@ export async function POST(request: Request) {
         escalate: faq.escalate,
         waNumber: supportWaNumber(),
         waLink: waMeLink(
-          faq.escalate ? `Halo CS UMKMan, saya ingin tanya: ${message}` : undefined,
+          faq.escalate ? `Halo CS TERKASA, saya ingin tanya: ${message}` : undefined,
         ),
         source: 'faq',
       })
     }
 
     // 2) Gemini (opsional)
-    const key = envTrim('GEMINI_API_KEY')
-    if (!key) {
+    const config = geminiRuntimeConfig()
+    if (!config.configured) {
       return NextResponse.json({
         reply:
           'Untuk pertanyaan lanjutan, silakan chat CS kami di WhatsApp — kami bantu lebih detail di sana.',
         escalate: true,
         waNumber: supportWaNumber(),
-        waLink: waMeLink(`Halo CS UMKMan, saya ingin tanya: ${message}`),
+        waLink: waMeLink(`Halo CS TERKASA, saya ingin tanya: ${message}`),
         source: 'fallback',
       })
     }
 
-    const model = envTrim('GEMINI_MODEL') || 'gemini-2.5-flash'
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`
+    const model = config.model
 
-    const res = await fetch(endpoint, {
+    const res = await fetchGemini(model, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -152,7 +151,7 @@ export async function POST(request: Request) {
           },
         },
       }),
-      signal: AbortSignal.timeout(25_000),
+      signal: AbortSignal.timeout(geminiTimeout()),
     })
 
     const data = await res.json().catch(() => ({}))
@@ -161,10 +160,10 @@ export async function POST(request: Request) {
       // Jangan panik ke user — FAQ generik + opsi WA
       return NextResponse.json({
         reply:
-          'Halo! Saya bisa bantu soal fitur UMKMan, cara daftar, harga demo, atau multi-tenant. Untuk hal yang lebih spesifik, chat CS WhatsApp ya 😊',
+          'Halo! Saya bisa bantu soal fitur TERKASA, cara daftar, harga demo, atau multi-tenant. Untuk hal yang lebih spesifik, chat CS WhatsApp ya 😊',
         escalate: shouldEscalate(message),
         waNumber: supportWaNumber(),
-        waLink: waMeLink(`Halo CS UMKMan: ${message}`),
+        waLink: waMeLink(`Halo CS TERKASA: ${message}`),
         source: 'error-soft',
       })
     }
@@ -178,13 +177,13 @@ export async function POST(request: Request) {
       (parsed.reply || '').trim() ||
       (escalate
         ? 'Pertanyaan ini lebih baik ditangani CS lewat WhatsApp.'
-        : 'Halo! Ada yang bisa dibantu seputar fitur UMKMan, cara daftar, atau demo?')
+        : 'Halo! Ada yang bisa dibantu seputar fitur TERKASA, cara daftar, atau demo?')
 
     return NextResponse.json({
       reply,
       escalate,
       waNumber: supportWaNumber(),
-      waLink: waMeLink(escalate ? `Halo CS UMKMan: ${message}` : undefined),
+      waLink: waMeLink(escalate ? `Halo CS TERKASA: ${message}` : undefined),
       source: 'ai',
     })
   } catch (error) {

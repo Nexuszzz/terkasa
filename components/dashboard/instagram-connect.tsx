@@ -33,6 +33,10 @@ export function InstagramConnectSection() {
   const [status, setStatus] = useState<IgStatus | null>(null)
   const [gatewayOk, setGatewayOk] = useState<boolean | null>(null)
   const [gatewayBase, setGatewayBase] = useState<string>('')
+  const [sessionValid, setSessionValid] = useState(false)
+  const [sessionMessage, setSessionMessage] = useState(
+    'Memeriksa koneksi Instagram…',
+  )
 
   // Graph API fields
   const [accountId, setAccountId] = useState('')
@@ -52,24 +56,34 @@ export function InstagramConnectSection() {
   const [error, setError] = useState<string | null>(null)
   const [okMsg, setOkMsg] = useState<string | null>(null)
 
-  const privateConnected = Boolean(
-    profile?.instagram?.privateMode && profile?.instagram?.privateSessionId,
-  )
+  const privateConnected = sessionValid
 
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setSessionValid(false)
+    setSessionMessage('Memeriksa koneksi Instagram…')
     try {
-      const q = businessId ? `?businessId=${encodeURIComponent(businessId)}` : ''
+      const q = businessId
+        ? `?businessId=${encodeURIComponent(businessId)}`
+        : ''
       const [res, gw] = await Promise.all([
         fetch(`/api/instagram/connect${q}`),
-        fetch('/api/instagram/private/login'),
+        fetch(`/api/instagram/private/login${q}`),
       ])
       const data = await res.json().catch(() => ({}))
       const gwData = await gw.json().catch(() => ({}))
       // Gateway status harus tetap di-set meski status usaha error
       setGatewayOk(Boolean(gwData.gatewayHealthy))
-      setGatewayBase(String(gwData.baseUrl || gwData.docsUrl || '').replace(/\/docs$/, ''))
+      setSessionValid(Boolean(gwData.sessionValid))
+      setSessionMessage(
+        String(
+          gwData.sessionMessage || 'Koneksi Instagram belum terverifikasi.',
+        ),
+      )
+      setGatewayBase(
+        String(gwData.baseUrl || gwData.docsUrl || '').replace(/\/docs$/, ''),
+      )
       if (!res.ok && data.error) {
         // Soft fail — jangan blok status gateway
         setError(String(data.error))
@@ -119,7 +133,8 @@ export function InstagramConnectSection() {
         }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Gagal menghubungkan Instagram')
+      if (!res.ok)
+        throw new Error(data.error || 'Gagal menghubungkan Instagram')
       setOkMsg(data.message || 'Terhubung')
       setAccessToken('')
       setAccountId('')
@@ -169,8 +184,12 @@ export function InstagramConnectSection() {
     setBusy(true)
     setError(null)
     try {
-      const q = businessId ? `?businessId=${encodeURIComponent(businessId)}` : ''
-      const res = await fetch(`/api/instagram/connect${q}`, { method: 'DELETE' })
+      const q = businessId
+        ? `?businessId=${encodeURIComponent(businessId)}`
+        : ''
+      const res = await fetch(`/api/instagram/connect${q}`, {
+        method: 'DELETE',
+      })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Gagal memutus')
       setOkMsg(data.message || 'Terputus')
@@ -188,8 +207,12 @@ export function InstagramConnectSection() {
     setBusy(true)
     setError(null)
     try {
-      const q = businessId ? `?businessId=${encodeURIComponent(businessId)}` : ''
-      const res = await fetch(`/api/instagram/private/login${q}`, { method: 'DELETE' })
+      const q = businessId
+        ? `?businessId=${encodeURIComponent(businessId)}`
+        : ''
+      const res = await fetch(`/api/instagram/private/login${q}`, {
+        method: 'DELETE',
+      })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Gagal')
       setOkMsg(data.message || 'Session dihapus')
@@ -215,7 +238,8 @@ export function InstagramConnectSection() {
         <h3 className="font-display text-base font-bold">Instagram usaha</h3>
       </div>
       <p className="mb-3 text-xs text-muted-foreground">
-        Hubungkan IG <strong>per usaha/client</strong>. Post caption + poster dari tab Konten.
+        Hubungkan IG <strong>per usaha/client</strong>. Post caption + poster
+        dari tab Konten.
       </p>
 
       {/* Tabs */}
@@ -224,7 +248,9 @@ export function InstagramConnectSection() {
           type="button"
           onClick={() => setTab('private')}
           className={`flex-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-            tab === 'private' ? 'bg-[#E1306C] text-white' : 'text-muted-foreground hover:text-foreground'
+            tab === 'private'
+              ? 'bg-[#E1306C] text-white'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Demo Private API
@@ -233,7 +259,9 @@ export function InstagramConnectSection() {
           type="button"
           onClick={() => setTab('graph')}
           className={`flex-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-            tab === 'graph' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-foreground'
+            tab === 'graph'
+              ? 'bg-accent text-accent-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Graph API (resmi)
@@ -253,6 +281,12 @@ export function InstagramConnectSection() {
 
       {tab === 'private' && (
         <div className="flex flex-col gap-3">
+          <p
+            role="status"
+            className={`rounded-xl border px-3 py-2.5 text-xs leading-relaxed ${sessionValid ? 'border-accent/30 bg-accent/10 text-accent' : 'border-border bg-secondary/30 text-muted-foreground'}`}
+          >
+            {sessionMessage}
+          </p>
           <div className="rounded-xl border border-accent-warm/40 bg-accent-warm/10 px-3.5 py-3 text-[11px] leading-relaxed text-muted-foreground">
             <p className="mb-1 flex items-center gap-1.5 font-semibold text-foreground">
               <AlertTriangle className="size-3.5 text-accent-warm" />
@@ -276,7 +310,9 @@ export function InstagramConnectSection() {
                   : 'border-destructive/30 bg-destructive/10 text-destructive'
               }`}
             >
-              <span className={`size-1.5 rounded-full ${gatewayOk ? 'bg-accent' : 'bg-destructive'}`} />
+              <span
+                className={`size-1.5 rounded-full ${gatewayOk ? 'bg-accent' : 'bg-destructive'}`}
+              />
               {gatewayOk === null
                 ? 'Cek gateway…'
                 : gatewayOk
@@ -292,24 +328,32 @@ export function InstagramConnectSection() {
               <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 font-medium text-accent">
                 <CheckCircle2 className="size-3" />
                 Session aktif
-                {profile?.instagram?.username ? ` @${profile.instagram.username}` : ''}
+                {profile?.instagram?.username
+                  ? ` @${profile.instagram.username}`
+                  : ''}
               </span>
             )}
           </div>
 
           {!gatewayOk && (
             <p className="rounded-xl border border-border bg-secondary/40 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
-              {gatewayBase?.includes('railway') || gatewayBase?.startsWith('https://') ? (
+              {gatewayBase?.includes('railway') ||
+              gatewayBase?.startsWith('https://') ? (
                 <>
-                  Gateway production offline. Cek Railway service <strong>aiograpi</strong> Online,
-                  lalu refresh. URL: <span className="font-mono break-all">{gatewayBase}</span>
+                  Gateway production offline. Cek Railway service{' '}
+                  <strong>aiograpi</strong> Online, lalu refresh. URL:{' '}
+                  <span className="font-mono break-all">{gatewayBase}</span>
                 </>
               ) : (
                 <>
-                  Lokal: <span className="font-mono">docker compose up -d aiograpi</span>
+                  Lokal:{' '}
+                  <span className="font-mono">
+                    docker compose up -d aiograpi
+                  </span>
                   <br />
                   Production: set env Vercel{' '}
-                  <span className="font-mono">AIOGRAPI_BASE_URL</span> ke URL Railway aiograpi.
+                  <span className="font-mono">AIOGRAPI_BASE_URL</span> ke URL
+                  Railway aiograpi.
                 </>
               )}
             </p>
@@ -322,13 +366,19 @@ export function InstagramConnectSection() {
               onClick={() => void disconnectPrivate()}
               className="flex min-h-10 items-center justify-center gap-2 rounded-full border border-destructive/40 px-4 text-xs font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-50"
             >
-              {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Link2Off className="size-3.5" />}
+              {busy ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Link2Off className="size-3.5" />
+              )}
               Hapus session private
             </button>
           ) : (
             <>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-muted-foreground">Username IG</span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Username IG
+                </span>
                 <input
                   value={igUser}
                   onChange={(e) => setIgUser(e.target.value)}
@@ -338,7 +388,9 @@ export function InstagramConnectSection() {
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-muted-foreground">Password IG</span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Password IG
+                </span>
                 <span className="relative">
                   <input
                     type={showPass ? 'text' : 'password'}
@@ -353,7 +405,11 @@ export function InstagramConnectSection() {
                     onClick={() => setShowPass((v) => !v)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground"
                   >
-                    {showPass ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    {showPass ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
                   </button>
                 </span>
               </label>
@@ -374,7 +430,8 @@ export function InstagramConnectSection() {
               </div>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-muted-foreground">
-                  Cookie <code className="text-accent">sessionid</code> dari browser (disarankan)
+                  Cookie <code className="text-accent">sessionid</code> dari
+                  browser (disarankan)
                 </span>
                 <input
                   value={sessionCookie}
@@ -383,11 +440,13 @@ export function InstagramConnectSection() {
                   className="h-10 rounded-xl border border-input bg-background/60 px-3 font-mono text-xs outline-none focus:border-accent"
                 />
                 <span className="text-[10px] leading-relaxed text-muted-foreground">
-                  Chrome → buka instagram.com (pastikan masih login) → F12 → Application → Cookies →
-                  instagram.com → baris <strong>sessionid</strong> → salin <strong>Value</strong>.
-                  Jangan salin Name. Setelah simpan, coba Post ke IG lagi. Jika muncul{' '}
-                  <code className="text-destructive">login_required</code>, session sudah hangus —
-                  ambil value baru.
+                  Chrome → buka instagram.com (pastikan masih login) → F12 →
+                  Application → Cookies → instagram.com → baris{' '}
+                  <strong>sessionid</strong> → salin <strong>Value</strong>.
+                  Jangan salin Name. Setelah simpan, coba Post ke IG lagi. Jika
+                  muncul{' '}
+                  <code className="text-destructive">login_required</code>,
+                  session sudah hangus — ambil value baru.
                 </span>
               </label>
               <button
@@ -400,7 +459,11 @@ export function InstagramConnectSection() {
                 onClick={() => void connectPrivate()}
                 className="flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#E1306C] text-sm font-bold text-white disabled:opacity-50"
               >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <InstagramIcon className="size-4" />}
+                {busy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <InstagramIcon className="size-4" />
+                )}
                 Login & simpan session (demo)
               </button>
             </>
@@ -416,7 +479,8 @@ export function InstagramConnectSection() {
               Graph API resmi Meta (Business/Creator + token)
             </p>
             <p>
-              Tanpa token: tetap bisa <strong>Post ke IG</strong> mode bantu (salin + unduh).
+              Tanpa token: tetap bisa <strong>Post ke IG</strong> mode bantu
+              (salin + unduh).
             </p>
           </div>
 
@@ -426,7 +490,9 @@ export function InstagramConnectSection() {
                 <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-accent" />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold">
-                    {status.username ? `@${status.username}` : 'Instagram Business'}
+                    {status.username
+                      ? `@${status.username}`
+                      : 'Instagram Business'}
                   </p>
                   {status.accountIdMasked && (
                     <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
@@ -441,14 +507,20 @@ export function InstagramConnectSection() {
                 onClick={() => void disconnectGraph()}
                 className="flex min-h-10 items-center justify-center gap-2 rounded-full border border-destructive/40 px-4 text-xs font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-50"
               >
-                {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Link2Off className="size-3.5" />}
+                {busy ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Link2Off className="size-3.5" />
+                )}
                 Putuskan Graph API
               </button>
             </div>
           ) : (
             <>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-muted-foreground">@username (opsional)</span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  @username (opsional)
+                </span>
                 <input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -467,7 +539,9 @@ export function InstagramConnectSection() {
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-muted-foreground">Access Token *</span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Access Token *
+                </span>
                 <span className="relative">
                   <input
                     type={showToken ? 'text' : 'password'}
@@ -480,7 +554,11 @@ export function InstagramConnectSection() {
                     onClick={() => setShowToken((v) => !v)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground"
                   >
-                    {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    {showToken ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
                   </button>
                 </span>
               </label>
@@ -490,7 +568,11 @@ export function InstagramConnectSection() {
                 onClick={() => void connectGraph()}
                 className="flex min-h-11 items-center justify-center gap-2 rounded-full bg-accent text-sm font-bold text-accent-foreground disabled:opacity-50"
               >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <InstagramIcon className="size-4" />}
+                {busy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <InstagramIcon className="size-4" />
+                )}
                 Hubungkan Graph API
               </button>
             </>

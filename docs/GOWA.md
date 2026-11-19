@@ -2,6 +2,20 @@
 
 Gateway: [go-whatsapp-web-multidevice](https://github.com/aldinokemal/go-whatsapp-web-multidevice)
 
+## Pembaruan pairing — 19 November 2026
+
+Image lama bertanggal Juli 2026 ditolak WhatsApp dengan `Client outdated (405)`, lalu endpoint login mengembalikan `QR channel closed without receiving image`. GOWA diperbarui ke image resmi `ghcr.io/aldinokemal/go-whatsapp-web-multidevice:v9.10.0` dan dipatok pada versi tersebut di Compose. QR PNG 512×512 berhasil dibuat melalui adapter TERKASA dalam sekitar satu detik. Pemilik belum menyelesaikan pairing; tidak ada pesan dikirim.
+
+Konfigurasi container dan seluruh `storages`/`statics` lama dicadangkan secara privat di `.recovery/gowa-before-update-*`; image lama tersedia dengan tag lokal `terkasa-gowa:before-20261119`. Volume sesi `umkm-an-modal-components_umkman_gowa` dipertahankan saat container diperbarui. Folder cadangan, QR, credential dan volume runtime tidak diunggah ke GitHub.
+
+Untuk melanjutkan **stack lama di laptop ini**, pertahankan nama project Compose agar volume yang sama digunakan:
+
+```powershell
+docker compose -p umkm-an-modal-components -f D:\projkwblampung\terkasa\docker-compose.yml up -d --no-deps gowa
+```
+
+Perintah pada bagian berikut berlaku untuk instalasi baru. Jangan mengganti project/volume stack lama secara sembarang.
+
 ## Jalankan gateway
 
 ```bash

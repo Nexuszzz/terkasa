@@ -6,6 +6,7 @@ import type {
   BusinessProfile,
   BusinessSummary,
   CatalogProduct,
+  LivestockDetails,
   ContentItem,
   ContentStatus,
   CreateBusinessInput,
@@ -48,6 +49,8 @@ type DashboardStore = {
     variant?: string
     unitPrice: number
     stock?: number
+    lowStockAt?: number
+    livestock?: LivestockDetails
     description?: string
     sku?: string
     image?: string
@@ -59,6 +62,7 @@ type DashboardStore = {
   ) => Promise<CatalogProduct>
   /** Tambah stok (delta positif), mis. restock barang masuk */
   addStock: (id: string, amount: number) => Promise<CatalogProduct>
+  adjustStock: (id: string, delta: number) => Promise<CatalogProduct>
   addContents: (items: Omit<ContentItem, 'id' | 'createdAt'>[]) => Promise<void>
   updateContent: (id: string, patch: Partial<Omit<ContentItem, 'id'>>) => Promise<void>
   addTransaction: (input: {
@@ -219,6 +223,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       variant?: string
       unitPrice: number
       stock?: number
+      lowStockAt?: number
+      livestock?: LivestockDetails
       description?: string
       sku?: string
       image?: string
@@ -283,10 +289,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     [businessId],
   )
 
-  const addStock = useCallback(
+  const adjustStock = useCallback(
     async (id: string, amount: number) => {
-      const qty = Math.max(0, Math.round(Number(amount) || 0))
-      if (qty < 1) throw new Error('Jumlah stok masuk minimal 1.')
+      const qty = Number(amount)
+      if (!Number.isSafeInteger(qty) || qty === 0) throw new Error('Perubahan stok harus bilangan bulat dan tidak boleh nol.')
       const response = await fetch('/api/catalog', {
         method: 'PATCH',
         headers: bizHeaders(businessId),
@@ -319,6 +325,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     },
     [businessId],
   )
+
+  const addStock = useCallback(async (id: string, amount: number) => {
+    if (!Number.isSafeInteger(amount) || amount < 1) throw new Error('Jumlah stok masuk minimal 1.')
+    return adjustStock(id, amount)
+  }, [adjustStock])
 
   const addContents = useCallback(
     async (items: Omit<ContentItem, 'id' | 'createdAt'>[]) => {
@@ -527,6 +538,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       addProduct,
       updateProduct,
       addStock,
+      adjustStock,
       addContents,
       updateContent,
       addTransaction,
@@ -558,6 +570,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       addProduct,
       updateProduct,
       addStock,
+      adjustStock,
       addContents,
       updateContent,
       addTransaction,

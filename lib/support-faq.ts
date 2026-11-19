@@ -24,7 +24,7 @@ export function waMeLink(text?: string) {
 }
 
 export const QUICK_CHIPS = [
-  { id: 'fitur', label: 'Fitur UMKMan apa saja?' },
+  { id: 'fitur', label: 'Fitur TERKASA apa saja?' },
   { id: 'daftar', label: 'Cara daftar / coba gratis' },
   { id: 'harga', label: 'Apakah berbayar?' },
   { id: 'wa', label: 'Chat CS WhatsApp' },
@@ -36,7 +36,7 @@ export function matchFaq(message: string): SupportReply | null {
 
   if (!m) {
     return {
-      reply: 'Halo! Ada yang bisa dibantu seputar UMKMan? Pilih pertanyaan cepat atau ketik sendiri.',
+      reply: 'Halo! Ada yang bisa dibantu seputar TERKASA? Pilih pertanyaan cepat atau ketik sendiri.',
       escalate: false,
     }
   }
@@ -60,7 +60,7 @@ export function matchFaq(message: string): SupportReply | null {
   if (isGreeting) {
     return {
       reply:
-        'Halo! 👋 Ada yang bisa saya bantu seputar UMKMan — fitur, cara daftar, demo, atau multi-tenant? Bisa pilih chip di bawah atau ketik pertanyaanmu.',
+        'Halo! 👋 Ada yang bisa saya bantu seputar TERKASA — fitur, cara daftar, demo, atau multi-tenant? Bisa pilih chip di bawah atau ketik pertanyaanmu.',
       escalate: false,
     }
   }
@@ -78,10 +78,17 @@ export function matchFaq(message: string): SupportReply | null {
     }
   }
 
+  if (/\b(stok|inventori|ternak|sapi|domba|kambing|ayam|bebek|kerbau)\b/.test(m)) {
+    return {
+      reply: 'Buka Inventori → Tambah ternak, pilih jenisnya, lalu isi nama kelompok dan jumlah awal dalam ekor. Gunakan Tambah jumlah atau Kurangi untuk memperbarui stok. Penjualan dicatat melalui Transaksi agar omzet dan stok ikut diperbarui.',
+      escalate: false,
+    }
+  }
+
   if (/\b(fitur|bisa apa|fungsi|kemampuan)\b/.test(m)) {
     return {
       reply:
-        'UMKMan bantu UMKM: (1) caption & poster AI dari foto produk, (2) catat transaksi bahasa natural, (3) laporan omzet/PDF, (4) chatbot WhatsApp pelanggan. Semua multi-tenant — data usaha terisolasi per akun.',
+        'TERKASA membantu UMKM peternakan: (1) inventori sapi, domba, kambing, unggas dan lainnya, (2) tambah/kurangi jumlah ternak, (3) caption & poster AI, (4) transaksi dan laporan PDF, (5) chatbot WhatsApp. Data setiap usaha terpisah.',
       escalate: false,
     }
   }
@@ -137,11 +144,13 @@ export function shouldEscalate(message: string): boolean {
 }
 
 export function supportSystemPrompt() {
-  return `Kamu adalah asisten support website UMKMan (platform AI untuk UMKM Indonesia).
+  return `Kamu adalah asisten support website TERKASA, platform manajemen inventori peternakan dan otomatisasi pemasaran digital berbasis AI untuk UMKM peternakan Indonesia.
+
+Cara mencatat ternak: masuk → Inventori → Tambah ternak → pilih sapi/domba/kambing/ayam/bebek/kerbau/lainnya → isi nama, jumlah awal, ras/kandang opsional dan harga → simpan. Tombol Tambah jumlah/Kurangi mengubah jumlah dalam ekor. Untuk penjualan gunakan Transaksi agar stok dan omzet tercatat bersama.
 
 ## Aturan
 - Jawab singkat (maks 2–4 kalimat), ramah, bahasa Indonesia.
-- Topik yang BOLEH: fitur UMKMan, cara daftar, demo, multi-tenant, AI caption/poster, transaksi, stok, laporan, chatbot WA, Instagram.
+- Topik yang BOLEH: fitur TERKASA, cara daftar, demo, multi-tenant, AI caption/poster, transaksi, stok, laporan, chatbot WA, Instagram.
 - Chat random / sapaan: balas ramah dan tawarkan topik bantuan (jangan kosong / jangan JSON di dalam reply).
 - JANGAN mengarang harga produk fisik toko tertentu, stok real-time, atau status order pelanggan.
 - Jika terlalu spesifik (order, komplain, bayar, data akun, custom), escalate=true dan arahkan ke WhatsApp CS.

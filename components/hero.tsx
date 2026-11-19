@@ -75,7 +75,7 @@ export function Hero() {
           >
             <Sparkles className="size-3.5 text-accent" aria-hidden="true" />
           </motion.span>
-          Baru: Terintegrasi Generative AI
+          Asisten digital untuk UMKM peternakan
         </motion.span>
 
         <motion.h1
@@ -83,11 +83,11 @@ export function Hero() {
           className="mt-6 font-display text-[1.85rem] font-bold leading-[1.1] tracking-tight text-balance min-[400px]:text-4xl sm:mt-8 sm:text-5xl md:text-6xl"
         >
           <span className="bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent">
-            {'UMKM Naik Kelas,'}
+            {'Ternak Tercatat.'}
           </span>
           <br />
           <span className="animate-shimmer bg-gradient-to-r from-accent via-accent-warm to-accent bg-[length:200%_100%] bg-clip-text text-transparent">
-            Ditenagai Kecerdasan Buatan.
+            Usaha Makin Hebat.
           </span>
         </motion.h1>
 
@@ -95,8 +95,8 @@ export function Hero() {
           variants={item}
           className="mt-6 max-w-[550px] text-base leading-relaxed text-muted-foreground md:text-lg text-pretty"
         >
-          Buat konten promosi, caption, dan analisis penjualan secara otomatis.
-          Satu asisten AI untuk semua kebutuhan digital usaha Anda.
+          Kelola stok sapi, domba, kambing, dan ternak lainnya dalam satu tempat.
+          Dari inventori kandang hingga promosi digital, tumbuhkan usaha Anda bersama AI.
         </motion.p>
 
         <motion.div
